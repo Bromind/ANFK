@@ -24,7 +24,7 @@ void switchToProcess(void* process)
 {
 	if (running == NULL)
 	{
-		launch(process); 
+		startProcess(process); 
 	} else {
 		transfer(process, running);
 	}
