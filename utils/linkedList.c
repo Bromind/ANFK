@@ -71,6 +71,7 @@ void* removeCell(struct linkedList * list, struct cell * cell)
 	cell->next->previous = cell->previous;
 	cell->previous->next = cell->next;
 	free(cell);
+	list->size--;
 	return element;
 }
 
