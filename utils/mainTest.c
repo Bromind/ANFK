@@ -16,11 +16,16 @@ void testArray(void)
 {
 	printf("=== Test array ===\n");
 	struct DynamicArray * array = newArray();
-	for(int i = 0 ; i < 5 ; i++)
+	int integers[] = {1, 2, 3};
+	for(int i = 0 ; i < 3 ; i++)
 	{
-		addElement(array, &i, i);
-		int* res = getElement(array, 0);
-		printf("At index i : %d\n", *res);
+		addElement(array, &integers[i], i);
+	}
+
+	for(int i = 0 ; i < 3 ; i++)
+	{
+		int* res = getElement(array, i);
+		printf("At index %d : %d\n",i , *res);
 	}
 	freeArray(array);
 }
