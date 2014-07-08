@@ -33,7 +33,6 @@ transfer:
 	bl restartProcess
 
 @ r0 : process to save
-.globl saveProcessState
 saveProcessState:
 	str sp, [r0, #4]
 	str lr, [r0, #8] @ space for tmp lr storage
@@ -41,7 +40,6 @@ saveProcessState:
 	ldr pc, [r0, #8] @ goto label return
 
 @ r0 : process to Save
-.globl saveGPRegister
 saveGPRegister:
 	str r4, [r0, #12]
 	str r5, [r0, #16]
@@ -55,7 +53,6 @@ saveGPRegister:
 	mov pc, lr
 
 @ r0 : process to restore
-.globl restoreProcessState
 restoreProcessState:
 	ldr sp, [r0, #4]
 	str lr, [r0, #8]
@@ -63,7 +60,6 @@ restoreProcessState:
 	ldr pc, [r0, #8]
 
 @ r0 : process to restore
-.globl restoreGPRegister
 restoreGPRegister:
 	ldr r4, [r0, #12]
 	ldr r5, [r0, #16]
