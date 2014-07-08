@@ -42,6 +42,14 @@ struct cell * createProcess(void (*f)(void), void* stack, int stackSize)
 	return getIndex(stoppedList, 0);
 }
 
+void deleteProcess()
+{
+	void* process = removeCell(runningList, getIndex(runningList, 0));
+	free(process);
+	void* next = getIndex(runningList, 0)->element;
+	restartProcess(next);
+}
+
 /* Start the process in the given cell (do not verify if the cell is indeed in 
  * the stoppedList), i.e.: add it to the running list. The process may not 
  * run immediately*/

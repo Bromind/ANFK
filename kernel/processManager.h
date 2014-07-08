@@ -4,6 +4,7 @@
 #define REGISTER_SIZE 4
 
 struct cell * createProcess(void (*f)(void), void* stack, int stackSize);
+void deleteProcess();
 void switchToProcess(void* process);
 
 void start(struct cell * processCell);
