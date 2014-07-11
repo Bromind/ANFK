@@ -1,3 +1,6 @@
+#include "../../utils/typedefs.h"
+
+# ifndef FB_DESCR
 struct FrameBufferDescription
 {
 	u32 physicalWidth;
@@ -10,6 +13,8 @@ struct FrameBufferDescription
 	void* gpuPou32er;
 	u32 gpuSize;
 };
+#define FB_DESCR
+#endif
 
 
 extern struct FrameBufferDescription* initializeFrameBuffer(u32 width, 

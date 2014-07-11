@@ -5,9 +5,9 @@ CFLAGS = -std=c99 -g -pg -Wall
 RM = /bin/rm
 OBJ = *.o
 
-main: drawing.o framebuffer.o gpio.o mailbox.o systemTimer.o
+all: drawing.o frameBuffer.o gpio.o mailbox.o systemTimer.o
 
-mainTest: drawing.o framebuffer.o gpio.o mailbox.o systemTimer.o mainTest.o
+mainTest: drawing.o frameBuffer.o gpio.o mailbox.o systemTimer.o mainTest.o
 	$(CC) -o test $(CFLAGS) $^
 
 clean: 

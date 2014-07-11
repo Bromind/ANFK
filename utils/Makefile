@@ -4,7 +4,7 @@ RM = /bin/rm
 OBJ = *.o
 OUTPUT = utilsTest
 
-all: array.o linkedList.o 
+all: array.o linkedList.o
 
 test: array.o linkedList.o mainTest.o
 	$(CC) -o $(OUTPUT) $(LDFLAGS) $^ $(LDLIBS)
