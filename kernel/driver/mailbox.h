@@ -1,3 +1,3 @@
 extern void* getMailboxAddr(void);
-extern void mailboxWrite(int message, int mailbox);
-extern int mailboxRead(int mailbox);
+extern void mailboxWrite(u32 message, u8 mailbox);
+extern u32 mailboxRead(u8 mailbox);
