@@ -31,7 +31,7 @@ getTimerAddr:
 .globl getTimeStamp
 getTimeStamp:
 	push {lr}
-	bl GetSystemTimerBase
+	bl getTimerAddr
 	ldrd r0,r1,[r0,#4]
 	pop {pc}
 
@@ -45,12 +45,12 @@ wait:
 	delay .req r2
 	mov delay,r0	
 	push {lr}
-	bl GetTimeStamp
+	bl getTimeStamp
 	start .req r3
 	mov start,r0
 
 	loop$:
-		bl GetTimeStamp
+		bl getTimeStamp
 		elapsed .req r1
 		sub elapsed,r0,start
 		cmp elapsed,delay
