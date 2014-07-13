@@ -16,5 +16,5 @@ struct FrameBufferDescription
 #endif
 
 
-struct FrameBufferDescription* initializeFrameBuffer(int width, 
+struct FrameBufferDescription* initialiseFrameBuffer(int width, 
 		int height, int bitDepth);

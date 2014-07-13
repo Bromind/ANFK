@@ -11,7 +11,7 @@ main: mainTest
 
 cleanMain: clean main
 
-mainTest: transfer.o processManager.o processTest.o ../utils/linkedList.o initFrameBuffer.o initSP.o
+mainTest: transfer.o processManager.o processTest.o ../../utils/linkedList.o
 	$(CC) $(CFLAGS) -o $(OUTPUT) $(LDFLAGS) $^ $(LDLIBS)
 
 transfer.o:
