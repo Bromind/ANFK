@@ -3,22 +3,18 @@
 #include "driver/frameBuffer/frameBuffer.h"
 #include "driver/drawing/drawing.h"
 
-void kernelStart(void)
+
+/*
+ *	Initialise a frame buffer, if initialisation fail, make ACT led blink fast.
+ *	After initialisation, draw a 5 pixels square and make ACT led blink slow.
+ */
+void kernelStart(struct FrameBufferDescription* fb)
 {
 	setGpioFunction(16, 1);
-	struct FrameBufferDescription* fb = initialiseFrameBuffer(1024, 768, 16);
-	while(fb == 0)
-	{
-		setGpio(16, 0);
-		wait(200000);
-		setGpio(16, 1);
-		wait(200000);
-
-	}
-	setGpio(16, 0);
-	setGraphicsAddress(fb);
-	int i = 5;
-	int j = 5;
+	
+	int i = 15;
+	int j = 15;
+	
 	for(;i < 10 ; i++)
 	{
 		for(; j < 10 ; j++)
@@ -26,10 +22,22 @@ void kernelStart(void)
 			drawPixel(i, j);
 		}
 	}
+	
 	while(1){
 		setGpio(16, 0);
 		wait(500000);
 		setGpio(16, 1);
 		wait(500000);
+	}
+}
+
+void blinkFast(void)
+{
+	while(1)
+	{
+		setGpio(16, 0);
+		wait(200000);
+		setGpio(16, 1);
+		wait(200000);
 	}
 }
