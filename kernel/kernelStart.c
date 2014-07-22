@@ -41,3 +41,14 @@ void blinkFast(void)
 		wait(200000);
 	}
 }
+
+void blinkSlow(void)
+{
+	while(1)
+	{
+		setGpio(16, 0);
+		wait(800000);
+		setGpio(16, 1);
+		wait(200000);
+	}
+}
