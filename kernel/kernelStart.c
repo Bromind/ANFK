@@ -3,33 +3,7 @@
 #include "driver/frameBuffer/frameBuffer.h"
 #include "driver/drawing/drawing.h"
 
-
-/*
- *	Initialise a frame buffer, if initialisation fail, make ACT led blink fast.
- *	After initialisation, draw a 5 pixels square and make ACT led blink slow.
- */
-void kernelStart(struct FrameBufferDescription* fb)
-{
-	setGpioFunction(16, 1);
-	
-	int i = 15;
-	int j = 15;
-	
-	for(;i < 10 ; i++)
-	{
-		for(; j < 10 ; j++)
-		{
-			drawPixel(i, j);
-		}
-	}
-	
-	while(1){
-		setGpio(16, 0);
-		wait(500000);
-		setGpio(16, 1);
-		wait(500000);
-	}
-}
+#include "initFrameBuffer.h"
 
 void blinkFast(void)
 {
@@ -52,3 +26,24 @@ void blinkSlow(void)
 		wait(200000);
 	}
 }
+
+/*
+ *	Initialise a frame buffer, if initialisation fail, make ACT led blink fast.
+ *	After initialisation, draw a 5 pixels square and make ACT led blink slow.
+ */
+void kernelStart(struct FrameBufferDescription* fb)
+{
+	setGpioFunction(16, 1);
+	
+	print("Hello World !");
+	newLine();
+	print("-------------");
+	newLine();
+	newLine();
+	print("Project : Parallel kernel for RaspberryPi");
+	newLine();
+	newLine();
+	print("git repository : https://github.com/Bromind/ANFK.git");
+	blinkSlow();
+}
+

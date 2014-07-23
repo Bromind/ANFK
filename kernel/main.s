@@ -22,11 +22,7 @@ mov fbInfoAddr,r0
 
 bl setGraphicsAddress
 
-mov r0, #0
-mov r1, #0
-mov r2, #10
-mov r3, #10
-bl drawLine
+bl kernelStart
 
 loop$:
 b loop$
