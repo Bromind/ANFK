@@ -5,10 +5,13 @@ CFLAGS = -std=c99 -g -pg -Wall
 RM = /bin/rm
 OBJ = *.o
 
-all: drawing.o frameBuffer.o gpio.o mailbox.o systemTimer.o
+SUBDIR = drawing frameBuffer gpio mailbox systemTimer
 
-mainTest: drawing.o frameBuffer.o gpio.o mailbox.o systemTimer.o mainTest.o
-	$(CC) -o test $(CFLAGS) $^
+.PHONY: subdirs $(SUBDIR)
 
-clean: 
-	$(RM) $(OBJ)
+subdirs: $(SUBDIR)
+
+$(SUBDIR):
+	$(MAKE) -C $@
+
+
