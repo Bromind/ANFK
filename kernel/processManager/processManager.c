@@ -42,6 +42,10 @@ struct cell * createProcess(void (*f)(void), void* stack, int stackSize)
 	return getIndex(stoppedList, 0);
 }
 
+/*
+ * Delete current process, i.e. remove from runningList, free the Cell, 
+ * and switch process
+ */
 void deleteProcess()
 {
 	void* process = removeCell(runningList, getIndex(runningList, 0));
@@ -81,6 +85,9 @@ void yield()
 	transfer(next, current);
 }
 
+/*
+ * Start given process and give it cpu
+ */
 void switchToProcess(void* process)
 {
 	if (running == NULL)
@@ -91,6 +98,9 @@ void switchToProcess(void* process)
 	}
 }
 
+/*
+ * Instanciate Lists & idle process
+ */
 void initManager(void)
 {
 	stoppedList = newList();
@@ -102,6 +112,9 @@ void initManager(void)
 	start(idleCell);
 }
 
+/*
+ * Launch the kernel, i.e. launch first process in the running list
+ */
 void startKernel(void)
 {
 	void* process = getIndex(runningList, 0)->element;
