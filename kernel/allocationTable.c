@@ -2,7 +2,11 @@
 /* Written after Tanenbaum explaination (Operating systems, sec 4.2) of the 
    buddy System (Knuth 1973 ; Knowlton 1965)*/
 
-#ifndef DEBUG 
+#ifdef DEBUG 
+/* simulate space by malloc-ing 1 MiB*/
+#include<stdlib.h>
+void* freeSpace;
+#else 
 #include<freeSpace.h>
 #endif
 
@@ -27,6 +31,7 @@ unsigned int indexOfFirstOfSize(unsigned int n);
 void splitBuddy(unsigned int index);
 char isFull(unsigned int index);
 char isNonEmpty(unsigned int index);
+unsigned int offsetFromIndex(unsigned int index);
 
 /*---------------- Structure Definition --------------------*/
 struct buddy {
@@ -62,6 +67,16 @@ unsigned int smallest2PowerAbove(unsigned int x){
 	return x+1;
 }
 
+unsigned int biggest2PowerUnder(unsigned int x)
+{
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return x - (x >> 1);
+}
+
 void* allocateMemory(unsigned int size, int runningProcess)
 {
 	unsigned int pageSize = smallest2PowerAbove(size);
@@ -78,15 +93,29 @@ void* allocateMemory(unsigned int size, int runningProcess)
 	}
 	allocateBuddy(index, runningProcess);
 	splitBuddy((index+1)/2 - 1);
+
+	/* If the address has never been initialized, compute it*/
+	if(address == 0){
+		allocationTree[index].address =
+			freeSpace + offsetFromIndex(index);
+	}
 	address = allocationTree[index].address;
-#ifdef DEBUG
 	return address;
-#else
-	return address + freeSpace;
-#endif
 
 no_place:
 	return 0;
+}
+
+unsigned int offsetFromIndex(unsigned int index)
+{
+	unsigned int nth = index + 1;
+	unsigned int sectionSize = SPACE/biggest2PowerUnder(nth);
+	/* Not the real address, doesn't take min page size into account*/
+	unsigned int virtOffset = 
+		(nth - biggest2PowerUnder(nth)) * sectionSize;
+	/* Shift by the LOG_PAGE_SIZE to have the true address*/
+	unsigned int offset = (virtOffset << LOG_PAGE_SIZE);
+	return offset;
 }
 
 /* Reserve the buddy (and all sub-buddies) */
@@ -171,9 +200,11 @@ void printBuddy(unsigned int index, unsigned int level)
 }
 void main(void)
 {
+	freeSpace = malloc(1048576);
 	allocateMemory(256, 1);
 	allocateMemory(512, 2);
 	allocateMemory(256, 3);
+	printf("Base pointer : %p\n", freeSpace);
 	printf("------- Allocate 256bytes --------\n");
 	printBuddy(0, 0);
 }
