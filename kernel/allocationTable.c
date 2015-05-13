@@ -22,7 +22,7 @@
 #define SPLITTED 1
 #define NON_SPLITTED -2
 /*---------------- Function Definition ---------------------*/
-void* allocateBuddy(unsigned int index);
+void* allocateBuddy(unsigned int index, int process);
 unsigned int indexOfFirstOfSize(unsigned int n);
 void splitBuddy(unsigned int index);
 char isFull(unsigned int index);
@@ -31,7 +31,7 @@ char isNonEmpty(unsigned int index);
 /*---------------- Structure Definition --------------------*/
 struct buddy {
 	void* address;
-	unsigned int size;
+	int process;
 	
 	/* 
 	   full (yes = 1/no=0) << 2 | 
@@ -76,7 +76,7 @@ void* allocateMemory(unsigned int size, int runningProcess)
 		if(index >= maxIndex)
 			goto no_place;
 	}
-	allocateBuddy(index);
+	allocateBuddy(index, runningProcess);
 	splitBuddy((index+1)/2 - 1);
 	address = allocationTree[index].address;
 #ifdef DEBUG
@@ -90,13 +90,14 @@ no_place:
 }
 
 /* Reserve the buddy (and all sub-buddies) */
-void* allocateBuddy(unsigned int index){
+void* allocateBuddy(unsigned int index, int process){
 	/* allocate sub-buddies */
 	/* First half of the array, i.e. not a leaf*/
 	if(index < NUMBER_OF_SECTION - 1) 	{
-		allocateBuddy((index+1)*2 - 1);
-		allocateBuddy((index+1)*2);
+		allocateBuddy((index+1)*2 - 1, process);
+		allocateBuddy((index+1)*2, process);
 	}
+	allocationTree[index].process = process;
 	allocationTree[index].info |= NON_EMPTY | FULL;
 	allocationTree[index].info &= NON_SPLITTED;
 
@@ -105,7 +106,7 @@ void* allocateBuddy(unsigned int index){
 
 /* Split the buddy (and all super-buddies) */
 void splitBuddy(unsigned int index){
-	allocationTree[index].info |= SPLITTED;
+	allocationTree[index].info |= SPLITTED | NON_EMPTY;
 	
 	/* if both children are full, it is full */
 	if(isFull((index+1)*2 -1) && isFull((index+1)*2)) 
@@ -124,19 +125,19 @@ void splitBuddy(unsigned int index){
  */
 unsigned int indexOfFirstOfSize(unsigned int n)
 {
-	return (2*NUMBER_OF_SECTION / (n >> (LOG_PAGE_SIZE - 1 ))) - 1;
+	return (NUMBER_OF_SECTION / (n >> (LOG_PAGE_SIZE - 1 ))) - 1;
 }
 
 char isFull(unsigned int index){
-	return allocationTree[index].info && FULL;
+	return allocationTree[index].info & FULL;
 }
 
 char isNonEmpty(unsigned int index){
-	return allocationTree[index].info && NON_EMPTY;
+	return allocationTree[index].info & NON_EMPTY;
 }
 
 char isSplitted(unsigned int index){
-	return allocationTree[index].info && SPLITTED; 
+	return allocationTree[index].info & SPLITTED; 
 }
 
 #ifdef DEBUG
@@ -152,11 +153,15 @@ void printBuddy(unsigned int index, unsigned int level)
 		}
 	}
 	if(index == 0){
-	printf("%p, %x\n", allocationTree[index].address, 
-			allocationTree[index].info);
+		printf("%p, %x, process n°%i\n", 
+				allocationTree[index].address, 
+				allocationTree[index].info,
+				allocationTree[index].process);
 	} else {
-		printf("+-- %p, %x\n", allocationTree[index].address, 
-				allocationTree[index].info);
+		printf("+-- %p, %x, process n°%i\n", 
+				allocationTree[index].address, 
+				allocationTree[index].info,
+				allocationTree[index].process);
 	}
 	if(index < NUMBER_OF_SECTION - 1)
 	{
@@ -166,7 +171,9 @@ void printBuddy(unsigned int index, unsigned int level)
 }
 void main(void)
 {
-	allocateMemory(4096, 1);
+	allocateMemory(256, 1);
+	allocateMemory(512, 2);
+	allocateMemory(256, 3);
 	printf("------- Allocate 256bytes --------\n");
 	printBuddy(0, 0);
 }
