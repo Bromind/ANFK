@@ -20,7 +20,7 @@ void* freeSpace;
 #define NUMBER_OF_SECTION SPACE/PAGE_SIZE
 
 #define FULL 4 
-#define NO_FULL -5
+#define NON_FULL -5
 #define EMPTY -3
 #define NON_EMPTY 2
 #define SPLITTED 1
@@ -32,6 +32,11 @@ void splitBuddy(unsigned int index);
 char isFull(unsigned int index);
 char isNonEmpty(unsigned int index);
 unsigned int offsetFromIndex(unsigned int index);
+unsigned int smallestIndexFromOffset(unsigned int offset);
+unsigned int removeRightZeros(unsigned int value);
+void freeBuddy(unsigned int index);
+void mergeBuddy(unsigned int index);
+char isSplitted(unsigned int index);
 
 /*---------------- Structure Definition --------------------*/
 struct buddy {
@@ -83,7 +88,13 @@ void* allocateMemory(unsigned int size, int runningProcess)
 	void* address = 0;
 	
 	unsigned int index = indexOfFirstOfSize(pageSize);
-	unsigned int maxIndex = indexOfFirstOfSize(pageSize >> 1) - 1 ;
+	unsigned int maxIndex;
+	if(pageSize = PAGE_SIZE) 
+	{
+		maxIndex = 2*NUMBER_OF_SECTION;
+	} else {
+		maxIndex = indexOfFirstOfSize(pageSize >> 1) - 1 ;
+	}
 
 	while (isNonEmpty(index))
 	{
@@ -106,15 +117,88 @@ no_place:
 	return 0;
 }
 
+/*We should free the biggest buddy at the given address which is not splitted */
+void freeMemory(void* address, int runningProcess)
+{
+	unsigned int offset = (unsigned int) (address - freeSpace);
+	/* if not a multiple of 64*/
+	if(offset != ((offset>>(LOG_PAGE_SIZE - 1))<<(LOG_PAGE_SIZE - 1)))
+	{
+		return; /* TODO send error */
+	}
+	unsigned int index = smallestIndexFromOffset(offset);
+
+	while(isSplitted(index))
+	{
+		index = (index+1)*2 - 1;
+		if(index >= NUMBER_OF_SECTION)
+			goto smallest_splitted;
+	}
+	freeBuddy(index);
+	mergeBuddy((index+1)/2 - 1);
+	return;
+
+smallest_splitted:
+	return; /* TODO send error */
+}
+
+unsigned int smallestIndexFromOffset(unsigned int offset)
+{
+	unsigned int virtOffset = offset >> (LOG_PAGE_SIZE - 1);
+	if(virtOffset == 0) return 0;
+
+	unsigned int rightMostOneBit = virtOffset & (-virtOffset);
+	unsigned int shifted = removeRightZeros(virtOffset);
+
+	unsigned int index = (2*NUMBER_OF_SECTION)/(rightMostOneBit << 1) -1 
+		+ shifted;
+	 return index;
+}
+
+unsigned int removeRightZeros(unsigned int value)
+{
+	if(value == 0) return 0;
+	unsigned int n = 1;
+	while(!(value & n)) value >>= 1;
+}
+
+void freeBuddy(unsigned int index)
+{
+	/* free sub-buddies */
+	if(index < NUMBER_OF_SECTION -1)
+	{
+		freeBuddy((index+1)*2 - 1);
+		freeBuddy((index+1)*2);
+	}
+	allocationTree[index].process = 0;
+	allocationTree[index].info = 0;
+}
+
+void mergeBuddy(unsigned int index){
+	/* If both children are empty, then it is empty and not splitted*/
+	if(!isNonEmpty((index+1)*2 - 1)&& !isNonEmpty((index+1)*2))
+	{
+		allocationTree[index].info &= (EMPTY & NON_SPLITTED);
+	}
+	/* The buddy can't be full, since we merge after a free */
+	allocationTree[index].info &= NON_FULL;
+
+	/* Merge parent */
+	if(index > 0)
+	{
+		mergeBuddy((index+1)/2 - 1);
+	}
+}
+
 unsigned int offsetFromIndex(unsigned int index)
 {
 	unsigned int nth = index + 1;
 	unsigned int sectionSize = SPACE/biggest2PowerUnder(nth);
 	/* Not the real address, doesn't take min page size into account*/
 	unsigned int virtOffset = 
-		(nth - biggest2PowerUnder(nth)) * sectionSize;
+		(nth - biggest2PowerUnder(nth)) * sectionSize / PAGE_SIZE;
 	/* Shift by the LOG_PAGE_SIZE to have the true address*/
-	unsigned int offset = (virtOffset << LOG_PAGE_SIZE);
+	unsigned int offset = (virtOffset << (LOG_PAGE_SIZE-1));
 	return offset;
 }
 
@@ -201,12 +285,16 @@ void printBuddy(unsigned int index, unsigned int level)
 void main(void)
 {
 	freeSpace = malloc(1048576);
-	allocateMemory(256, 1);
-	allocateMemory(512, 2);
-	allocateMemory(256, 3);
+	void* first = allocateMemory(64, 1);
+	void* second = allocateMemory(128, 2);
+	void* third = allocateMemory(262144, 3);
 	printf("Base pointer : %p\n", freeSpace);
 	printf("------- Allocate 256bytes --------\n");
+//	printBuddy(0, 0);
+	printf("------- Free third ---------------\n");
+	freeMemory(second, 2);
 	printBuddy(0, 0);
+	free(freeSpace);
 }
 
 #endif 
