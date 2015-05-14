@@ -5,6 +5,8 @@
 
 #include "initFrameBuffer.h"
 
+#include "logger.h"
+
 void blinkFast(void)
 {
 	while(1)
@@ -35,15 +37,15 @@ void kernelStart(struct FrameBufferDescription* fb)
 {
 	setGpioFunction(16, 1);
 	
-	print("Hello World !");
+	LOG("Hello World !");
 	newLine();
-	print("-------------");
-	newLine();
-	newLine();
-	print("Project : Parallel kernel for RaspberryPi");
+	LOG("-------------");
 	newLine();
 	newLine();
-	print("git repository : https://github.com/Bromind/ANFK.git");
+	LOG("Project : Parallel kernel for RaspberryPi");
+	newLine();
+	newLine();
+	LOG("git repository : https://github.com/Bromind/ANFK.git");
 	blinkSlow();
 }
 

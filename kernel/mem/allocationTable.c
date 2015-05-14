@@ -1,5 +1,5 @@
 #define DEBUG
-/* Written after Tanenbaum explaination (Operating systems, sec 4.2) of the 
+/* Written after Tanenbaum explaination (Operating systems, section 4.2) of the 
    buddy System (Knuth 1973 ; Knowlton 1965)*/
 
 #ifdef DEBUG 
@@ -7,49 +7,10 @@
 #include<stdlib.h>
 void* freeSpace;
 #else 
-#include<freeSpace.h>
+#include "freeSpace.h"
 #endif
 
-/* Free space = 1MiB = 1048576 bytes */
-#define SPACE 1048576
-
-/* Smallest section is 64 bytes */
-#define PAGE_SIZE 64
-#define LOG_PAGE_SIZE 7
-
-#define NUMBER_OF_SECTION SPACE/PAGE_SIZE
-
-#define FULL 4 
-#define NON_FULL -5
-#define EMPTY -3
-#define NON_EMPTY 2
-#define SPLITTED 1
-#define NON_SPLITTED -2
-/*---------------- Function Definition ---------------------*/
-void* allocateBuddy(unsigned int index, int process);
-unsigned int indexOfFirstOfSize(unsigned int n);
-void splitBuddy(unsigned int index);
-char isFull(unsigned int index);
-char isNonEmpty(unsigned int index);
-unsigned int offsetFromIndex(unsigned int index);
-unsigned int smallestIndexFromOffset(unsigned int offset);
-unsigned int removeRightZeros(unsigned int value);
-void freeBuddy(unsigned int index);
-void mergeBuddy(unsigned int index);
-char isSplitted(unsigned int index);
-
-/*---------------- Structure Definition --------------------*/
-struct buddy {
-	void* address;
-	int process;
-	
-	/* 
-	   full (yes = 1/no=0) << 2 | 
-	   empty (yes = 0 /no = 1) << 1 |
-	   splitted (yes = 1/no = 0)
-	 */
-	char info;
-};
+#include "allocationTable.h"
 
 /* We want a tree with NUMBER_OF_SECTION leaves, so 
    we need (2*NUMBER_OF_SECTION - 1) ~= (2*N_O_S) buddy */
@@ -123,9 +84,8 @@ void freeMemory(void* address, int runningProcess)
 	unsigned int offset = (unsigned int) (address - freeSpace);
 	/* if not a multiple of 64*/
 	if(offset != ((offset>>(LOG_PAGE_SIZE - 1))<<(LOG_PAGE_SIZE - 1)))
-	{
-		return; /* TODO send error */
-	}
+		goto bad_offset;
+	
 	unsigned int index = smallestIndexFromOffset(offset);
 
 	while(isSplitted(index))
@@ -134,11 +94,18 @@ void freeMemory(void* address, int runningProcess)
 		if(index >= NUMBER_OF_SECTION)
 			goto smallest_splitted;
 	}
+	if(allocationTree[index].process != runningProcess)
+		goto bad_process;
+
 	freeBuddy(index);
 	mergeBuddy((index+1)/2 - 1);
 	return;
 
 smallest_splitted:
+	return; /* TODO send error */
+bad_process:
+	return; /* TODO send error */
+bad_offset:
 	return; /* TODO send error */
 }
 

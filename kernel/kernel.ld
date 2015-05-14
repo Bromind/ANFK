@@ -44,6 +44,11 @@ SECTIONS {
 	.bss : {
 		*(.bss)
 	}
+	
+	.freeSpace : {
+		*(.freeSpace)
+	}
+	. += 1M
 
 	_end = .;
 
