@@ -18,13 +18,13 @@ LINKER = kernel.ld
 
 LIST = kernel.list
 
-SUBDIR = driver processManager
+SUBDIR = driver processManager mem
 
 all: $(KERNEL_IMG) $(LIST)
 
 #FIXME
 $(KERNEL_ELF): $(OBJS) $(SUBDIR) $(LINKER)
-	ld --no-undefined driver/*/*.o initFrameBuffer.o kernelStart.o main.o -Map $(KERNEL_MAP) -o $@ -T $(LINKER) 
+	ld --no-undefined $(wildcard driver/*/*.o) initFrameBuffer.o kernelStart.o main.o -Map $(KERNEL_MAP) -o $@ -T $(LINKER) 
 $(KERNEL_IMG): $(KERNEL_ELF)
 	objcopy $^ -O binary $@
 

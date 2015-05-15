@@ -48,7 +48,7 @@ SECTIONS {
 	.freeSpace : {
 		*(.freeSpace)
 	}
-	. += 1M
+	. += 1M;
 
 	_end = .;
 

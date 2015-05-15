@@ -1,13 +1,37 @@
-#include <stdlib.h>
 
-#ifdef DEBUG
-#include <stdio.h>
+#ifndef ALLOCATION_TABLE_H
+#include "../mem/allocationTable.h"
+#define ALLOCATION_TABLE_H
 #endif
 
+#ifdef DEBUG
+#ifndef STDIO_H
+#include <stdio.h>
+#define STDIO_H
+#endif
+#endif
+
+#ifndef PROCESS_MANAGER_H
 #include "processManager.h"
+#define PROCESS_MANAGER_H
+#endif
+
+#ifndef TRANSFER_H
 #include "transfer.h"
+#define TRANSFER_H
+#endif
+
+#ifndef LINKEDLIST_H
+#include "../../utils/linkedList.h"
+#define LINKEDLIST_H
+#endif
 
 #define IDLE_STACK_SIZE 50
+#define PROCESS_MANAGER_ID 1
+#define NBR_REGISTER 15
+#define REGISTER_SIZE 4
+
+
 
 void* running = NULL;
 
@@ -49,7 +73,7 @@ struct cell * createProcess(void (*f)(void), void* stack, int stackSize)
 void deleteProcess()
 {
 	void* process = removeCell(runningList, getIndex(runningList, 0));
-	free(process);
+	freeMemory(process, PROCESS_MANAGER_ID);
 	void* next = getIndex(runningList, 0)->element;
 	restartProcess(next);
 }
@@ -106,7 +130,7 @@ void initManager(void)
 	stoppedList = newList();
 	runningList = newList();
 
-	void* idleStack = malloc(IDLE_STACK_SIZE);
+	void* idleStack = allocateMemory(IDLE_STACK_SIZE, PROCESS_MANAGER_ID);
 	struct cell * idleCell = createProcess(&idleProcess, idleStack,
 			IDLE_STACK_SIZE);
 	start(idleCell);

@@ -7,7 +7,7 @@ struct cell
 
 struct linkedList
 {
-	size_t size;
+	unsigned int size;
 	struct cell * head;
 };
 

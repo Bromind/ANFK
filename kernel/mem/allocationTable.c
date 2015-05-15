@@ -1,16 +1,57 @@
-#define DEBUG
 /* Written after Tanenbaum explaination (Operating systems, section 4.2) of the 
    buddy System (Knuth 1973 ; Knowlton 1965)*/
 
 #ifdef DEBUG 
 /* simulate space by malloc-ing 1 MiB*/
+
+#ifndef STDLIB
 #include<stdlib.h>
+#define STDLIB
+#endif
+
 void* freeSpace;
+
 #else 
+
 #include "freeSpace.h"
+
 #endif
 
 #include "allocationTable.h"
+
+/*------------------ Internal Functions ------------------------------*/
+void* allocateBuddy(unsigned int index, int process);
+unsigned int indexOfFirstOfSize(unsigned int n);
+void splitBuddy(unsigned int index);
+char isFull(unsigned int index);
+char isNonEmpty(unsigned int index);
+unsigned int offsetFromIndex(unsigned int index);
+unsigned int smallestIndexFromOffset(unsigned int offset);
+unsigned int removeRightZeros(unsigned int value);
+void freeBuddy(unsigned int index);
+void mergeBuddy(unsigned int index);
+char isSplitted(unsigned int index);
+unsigned int smallest2PowerAbove(unsigned int x);
+unsigned int biggest2PowerUnder(unsigned int x);
+#ifdef DEBUG
+void printBuddy(unsigned int index, unsigned int level);
+#endif
+
+/*------------------ Internal Structures -----------------------------*/
+struct buddy {
+	void* address;
+	int process;
+	
+	/* 
+	   full (yes = 1/no=0) << 2 | 
+	   empty (yes = 0 /no = 1) << 1 |
+	   splitted (yes = 1/no = 0)
+	 */
+	char info;
+};
+
+/*---------------- Global variables ---------------------------------*/
+
 
 /* We want a tree with NUMBER_OF_SECTION leaves, so 
    we need (2*NUMBER_OF_SECTION - 1) ~= (2*N_O_S) buddy */
@@ -43,14 +84,14 @@ unsigned int biggest2PowerUnder(unsigned int x)
 	return x - (x >> 1);
 }
 
-void* allocateMemory(unsigned int size, int runningProcess)
+void* allocateMemory(unsigned int size, unsigned int runningProcess)
 {
 	unsigned int pageSize = smallest2PowerAbove(size);
 	void* address = 0;
 	
 	unsigned int index = indexOfFirstOfSize(pageSize);
 	unsigned int maxIndex;
-	if(pageSize = PAGE_SIZE) 
+	if(pageSize == PAGE_SIZE) 
 	{
 		maxIndex = 2*NUMBER_OF_SECTION;
 	} else {
@@ -79,7 +120,7 @@ no_place:
 }
 
 /*We should free the biggest buddy at the given address which is not splitted */
-void freeMemory(void* address, int runningProcess)
+void freeMemory(void* address, unsigned int runningProcess)
 {
 	unsigned int offset = (unsigned int) (address - freeSpace);
 	/* if not a multiple of 64*/
@@ -127,6 +168,7 @@ unsigned int removeRightZeros(unsigned int value)
 	if(value == 0) return 0;
 	unsigned int n = 1;
 	while(!(value & n)) value >>= 1;
+	return value;
 }
 
 void freeBuddy(unsigned int index)
@@ -221,7 +263,11 @@ char isSplitted(unsigned int index){
 }
 
 #ifdef DEBUG
+
+#ifndef STDIO
 #include<stdio.h>
+#define STDIO
+#endif
 
 void printBuddy(unsigned int index, unsigned int level)
 {
@@ -249,6 +295,7 @@ void printBuddy(unsigned int index, unsigned int level)
 		printBuddy((index+1)*2, level + 1);
 	}
 }
+#ifdef TEST_ALLOCATION
 void main(void)
 {
 	freeSpace = malloc(1048576);
@@ -257,11 +304,14 @@ void main(void)
 	void* third = allocateMemory(262144, 3);
 	printf("Base pointer : %p\n", freeSpace);
 	printf("------- Allocate 256bytes --------\n");
-//	printBuddy(0, 0);
+	//	printBuddy(0, 0);
 	printf("------- Free third ---------------\n");
 	freeMemory(second, 2);
+	freeMemory(first, 1);
+	freeMemory(third, 3);
 	printBuddy(0, 0);
 	free(freeSpace);
 }
+#endif
 
 #endif 

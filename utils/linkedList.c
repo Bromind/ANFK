@@ -1,10 +1,20 @@
-#include <stdlib.h>
-#include "linkedList.h"
+#ifndef ALLOCATION_TABLE_H
+#include "../kernel/mem/allocationTable.h"
+#define ALLOCATION_TABLE_H
+#endif
 
+#ifndef LINKEDLIST_H
+#include "linkedList.h"
+#define LINKEDLIST_H
+#endif
+
+#define LINKEDLIST_ID 2
+#define NULL 0
 
 struct cell * createCell(void* element)
 {
-	struct cell * toReturn = malloc(sizeof(struct cell));
+	struct cell * toReturn = 
+		allocateMemory(sizeof(struct cell), LINKEDLIST_ID);
 	toReturn->element = element;
 	toReturn->next = toReturn;
 	toReturn->previous = toReturn;
@@ -13,7 +23,8 @@ struct cell * createCell(void* element)
 
 struct linkedList * newList(void)
 {
-	struct linkedList * toReturn = malloc(sizeof(struct linkedList));
+	struct linkedList * toReturn = 
+		allocateMemory(sizeof(struct linkedList), LINKEDLIST_ID);
 	toReturn->head = NULL;
 	toReturn->size = 0;
 	return toReturn;
@@ -70,14 +81,14 @@ void* removeCell(struct linkedList * list, struct cell * cell)
 	void* element = cell->element;
 	cell->next->previous = cell->previous;
 	cell->previous->next = cell->next;
-	free(cell);
+	freeMemory(cell, LINKEDLIST_ID);
 	list->size--;
 	return element;
 }
 
 void freeList(struct linkedList * list)
 {
-	free(list);
+	freeMemory(list, LINKEDLIST_ID);
 }
 
 struct cell * getCellAtIndex(struct cell * cell, int index)

@@ -15,27 +15,8 @@
 #define SPLITTED 1
 #define NON_SPLITTED -2
 /*---------------- Function Definition ---------------------*/
-void* allocateBuddy(unsigned int index, int process);
-unsigned int indexOfFirstOfSize(unsigned int n);
-void splitBuddy(unsigned int index);
-char isFull(unsigned int index);
-char isNonEmpty(unsigned int index);
-unsigned int offsetFromIndex(unsigned int index);
-unsigned int smallestIndexFromOffset(unsigned int offset);
-unsigned int removeRightZeros(unsigned int value);
-void freeBuddy(unsigned int index);
-void mergeBuddy(unsigned int index);
-char isSplitted(unsigned int index);
+void * allocateMemory(unsigned int size, unsigned int process);
+void freeMemory(void* toFree, unsigned int process);
 
 /*---------------- Structure Definition --------------------*/
-struct buddy {
-	void* address;
-	int process;
-	
-	/* 
-	   full (yes = 1/no=0) << 2 | 
-	   empty (yes = 0 /no = 1) << 1 |
-	   splitted (yes = 1/no = 0)
-	 */
-	char info;
-};
+
