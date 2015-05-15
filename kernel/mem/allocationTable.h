@@ -17,6 +17,9 @@
 /*---------------- Function Definition ---------------------*/
 void * allocateMemory(unsigned int size, unsigned int process);
 void freeMemory(void* toFree, unsigned int process);
+#ifdef DEBUG
+void initFreeSpace(void);
+#endif
 
 /*---------------- Structure Definition --------------------*/
 

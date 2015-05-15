@@ -87,6 +87,7 @@ unsigned int biggest2PowerUnder(unsigned int x)
 void* allocateMemory(unsigned int size, unsigned int runningProcess)
 {
 	unsigned int pageSize = smallest2PowerAbove(size);
+	pageSize = (pageSize >= 64 ? pageSize : 64);
 	void* address = 0;
 	
 	unsigned int index = indexOfFirstOfSize(pageSize);
@@ -295,10 +296,17 @@ void printBuddy(unsigned int index, unsigned int level)
 		printBuddy((index+1)*2, level + 1);
 	}
 }
+
+/* To use to initalize the simulation of freeSpace */
+void initFreeSpace(void)
+{
+	freeSpace = malloc(1048576);
+}
+
 #ifdef TEST_ALLOCATION
 void main(void)
 {
-	freeSpace = malloc(1048576);
+	initFreeSpace();
 	void* first = allocateMemory(64, 1);
 	void* second = allocateMemory(128, 2);
 	void* third = allocateMemory(262144, 3);
