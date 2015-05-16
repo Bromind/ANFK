@@ -4,6 +4,11 @@
 #define ALLOCATION_TABLE_H
 #endif
 
+#ifndef LOGGER_H
+#include "../logger.h"
+#define LOGGER_H
+#endif
+
 #ifdef DEBUG
 #ifndef STDIO_H
 #include <stdio.h>
@@ -26,15 +31,15 @@
 #define LINKEDLIST_H
 #endif
 
-#define IDLE_STACK_SIZE 50
+#define IDLE_STACK_SIZE 4096
 #define PROCESS_MANAGER_ID 1
 #define NBR_REGISTER 15
 #define REGISTER_SIZE 4
 
 
-#ifndef STRUCT_PROCESSSTATE_H
-#include "processState.h"
-#define STRUCT_PROCESSSTATE_H
+#ifndef STRUCT_PROCESSDESCRIPTOR_H
+#include "processDescriptor.h"
+#define STRUCT_PROCESSDESCRIPTOR_H
 #endif
 
 
@@ -51,7 +56,7 @@ void idleProcess(void)
 	while(1)
 	{
 		#ifdef DEBUG
-	//	printf("idle");
+		LOG("idle");
 		#endif
 		yield();
 	}
@@ -67,23 +72,28 @@ void* createStack(void* stack, void* pc, int stackSize)
 struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 {
 	/* Prepare initial processState*/
-	struct processState * process =
-		allocateMemory(sizeof(struct processState), PROCESS_MANAGER_ID);
-	process->pc = f;
-	process->sp = stackAddress;
-	process->lr_tmp = &deleteProcess; /* When exiting, auto-delete process */
-
+	struct processDescriptor * process =
+		allocateMemory(sizeof(struct processDescriptor), 
+				PROCESS_MANAGER_ID);
+	process->processState.pc = f;
+	process->processState.sp = stackAddress + stackSize - 1;
+	/* When exiting, auto-delete process */
+	process->processState.lr_tmp = &deleteProcess; 
+	/* Save stack allocation address to free it when removing the process*/
+	process->stack = stackAddress;
 	insert(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }
 
 /*
  * Delete current process, i.e. remove from runningList, free the Cell, 
- * and switch process
+ * and switch process. Free the stack too.
  */
 void deleteProcess()
 {
-	void* process = removeCell(runningList, getIndex(runningList, 0));
+	struct processDescriptor* process = (struct processDescriptor*)
+		 removeCell(runningList, getIndex(runningList, 0));
+	freeMemory(process->stack, PROCESS_MANAGER_ID);
 	freeMemory(process, PROCESS_MANAGER_ID);
 	void* next = getIndex(runningList, 0)->element;
 	restartProcess(next);
@@ -114,10 +124,12 @@ void stop(struct cell * processCell)
  * same if no other process are currently running*/
 void yield()
 {
-	void* current = getIndex(runningList, 0)->element;
+	struct processDescriptor* current = 
+		(struct processDescriptor*) getIndex(runningList, 0)->element;
 	rotateForward(runningList);
-	void* next = getIndex(runningList, 0)->element;
-	transfer(next, current);
+	struct processDescriptor* next = 
+		(struct processDescriptor*) getIndex(runningList, 0)->element;
+	transfer(&(next->processState), &(current->processState));
 }
 
 /*
@@ -152,6 +164,7 @@ void initManager(void)
  */
 void startKernel(void)
 {
-	void* process = getIndex(runningList, 0)->element;
-	startProcess(process);
+	struct processDescriptor* process = 
+		(struct processDescriptor*) getIndex(runningList, 0)->element;
+	startProcess(&(process->processState));
 }

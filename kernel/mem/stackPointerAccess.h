@@ -1,2 +1,2 @@
-extern void* getStackPointer(void);
-extern void setStackPointer(void*);
+extern inline void* getStackPointer(void);
+extern inline void setStackPointer(void*);

@@ -5,7 +5,7 @@
 #define STDIO_H
 #endif
 
-#define LOGA(text, ...) printf("[log] "text"\n", __VA_ARGS__)
+#define LOGA(text, ...) printf("[log] "text"\n", __VA_ARGS__); fflush(stdout)
 
 #else
 
