@@ -28,9 +28,18 @@ transfer:
 	mov r0, r1
 	bl saveProcessState
 
-@ restart process 
+@ At this point, we just have to restart the process. We can jump directlty to 
+@ that point if we don't need to save the state of the previous process (i.e. if
+@ it is deleted.
 	mov r0, r2
-	bl restartProcess
+
+@ r0 : process to restart : restore configuration & jump
+.globl restartProcess
+restartProcess:
+	bl restoreProcessState
+	ldr lr, [r0, #0]
+	mov pc, lr
+
 
 @ r0 : process to save
 saveProcessState:
@@ -80,12 +89,6 @@ stopRunningProcess:
 	str lr, [r0, #0]
 	bl saveProcessState
 	pop {pc}
-
-@ r0 : process to restart : restore configuration & jump
-.globl restartProcess
-restartProcess:
-	bl restoreProcessState
-	ldr pc, [r0, #0]
 
 @r0 : process to start : 
 @ set sp & lr (to deleteProcess, in  lr_tmp at processState initialization)
