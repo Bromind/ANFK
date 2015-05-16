@@ -37,7 +37,8 @@ saveProcessState:
 	str sp, [r0, #4]
 	str lr, [r0, #8] @ space for tmp lr storage
 	bl saveGPRegister
-	ldr pc, [r0, #8] @ goto label return
+	ldr lr, [r0, #8]
+	mov pc, lr @ goto label return
 
 @ r0 : process to Save
 saveGPRegister:
@@ -80,13 +81,17 @@ stopRunningProcess:
 	bl saveProcessState
 	pop {pc}
 
-@ r0 : process to restart
+@ r0 : process to restart : restore configuration & jump
 .globl restartProcess
 restartProcess:
 	bl restoreProcessState
 	ldr pc, [r0, #0]
 
-@r0 : process to start
+@r0 : process to start : 
+@ set sp & lr (to deleteProcess, in  lr_tmp at processState initialization)
+@ both located at [r0, #4] & [r0, #8]
 .globl startProcess
 startProcess:
+	ldr lr, [r0, #8]
+	ldr sp, [r0, #4]
 	ldr pc, [r0, #0]

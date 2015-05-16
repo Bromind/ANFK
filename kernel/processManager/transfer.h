@@ -1,3 +1,8 @@
-extern void transfer(void* nextProcess, void* runningProcess);
-extern void startProcess(void* process);
-extern void restartProcess(void* process);
+#ifndef STRUCT_PROCESSSTATE_H
+#include "processState.h"
+#define STRUCT_PROCESSSTATE_H
+#endif
+
+extern void transfer(struct processState* nextProcess, struct processState* runningProcess);
+extern void startProcess(struct processState* process);
+extern void restartProcess(struct processState* process);

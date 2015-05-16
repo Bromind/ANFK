@@ -32,18 +32,26 @@
 #define REGISTER_SIZE 4
 
 
+#ifndef STRUCT_PROCESSSTATE_H
+#include "processState.h"
+#define STRUCT_PROCESSSTATE_H
+#endif
+
 
 void* running = NULL;
 
 struct linkedList * stoppedList;
 struct linkedList * runningList;
 
+void* localStack;
+void* sp_tmp;
+
 void idleProcess(void)
 {
 	while(1)
 	{
 		#ifdef DEBUG
-		printf("idle");
+	//	printf("idle");
 		#endif
 		yield();
 	}
@@ -56,12 +64,15 @@ void* createStack(void* stack, void* pc, int stackSize)
 }
 
 /* create new process and returns the cell containing the process */
-struct cell * createProcess(void (*f)(void), void* stack, int stackSize)
+struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 {
-	void* pc = f;
-	/* PC ; SP ; stackSize ; Register bank */
-	int size = 2*REGISTER_SIZE + stackSize + NBR_REGISTER*REGISTER_SIZE;
-	void* process = createStack(stack, pc, size);
+	/* Prepare initial processState*/
+	struct processState * process =
+		allocateMemory(sizeof(struct processState), PROCESS_MANAGER_ID);
+	process->pc = f;
+	process->sp = stackAddress;
+	process->lr_tmp = &deleteProcess; /* When exiting, auto-delete process */
+
 	insert(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }

@@ -1,3 +1,5 @@
+#define DEBUG
+#define TEST_ALLOCATION
 /* Written after Tanenbaum explaination (Operating systems, section 4.2) of the 
    buddy System (Knuth 1973 ; Knowlton 1965)*/
 
@@ -13,7 +15,7 @@ void* freeSpace;
 
 #else 
 
-#include "freeSpace.h"
+#include "freeMemory.h"
 
 #endif
 
@@ -303,6 +305,11 @@ void initFreeSpace(void)
 	freeSpace = malloc(1048576);
 }
 
+void freeFreeSpace(void)
+{
+	free(freeSpace);
+}
+
 #ifdef TEST_ALLOCATION
 void main(void)
 {
@@ -312,13 +319,12 @@ void main(void)
 	void* third = allocateMemory(262144, 3);
 	printf("Base pointer : %p\n", freeSpace);
 	printf("------- Allocate 256bytes --------\n");
-	//	printBuddy(0, 0);
+	printBuddy(0, 0);
 	printf("------- Free third ---------------\n");
 	freeMemory(second, 2);
-	freeMemory(first, 1);
 	freeMemory(third, 3);
 	printBuddy(0, 0);
-	free(freeSpace);
+	freeFreeSpace();
 }
 #endif
 
