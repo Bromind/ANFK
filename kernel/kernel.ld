@@ -49,6 +49,13 @@ SECTIONS {
 		*(.freeSpace)
 	}
 	. += 1M;
+	/* End of heap */
+	.+= 1K; /* free space to avoid collision */
+
+	.+=1M; /* 1M for stack */
+	.stackPointer :{
+		*(.stackPointer)
+	}
 
 	_end = .;
 
