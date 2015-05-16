@@ -95,8 +95,9 @@ void deleteProcess()
 		 removeCell(runningList, getIndex(runningList, 0));
 	freeMemory(process->stack, PROCESS_MANAGER_ID);
 	freeMemory(process, PROCESS_MANAGER_ID);
-	void* next = getIndex(runningList, 0)->element;
-	restartProcess(next);
+	struct processDescriptor* next = 
+		(struct processDescriptor *) getIndex(runningList, 0)->element;
+	restartProcess(&(next->processState));
 }
 
 /* Start the process in the given cell (do not verify if the cell is indeed in 
