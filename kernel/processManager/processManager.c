@@ -43,13 +43,8 @@
 #endif
 
 
-void* running = NULL;
-
 struct linkedList * stoppedList;
 struct linkedList * runningList;
-
-void* localStack;
-void* sp_tmp;
 
 void idleProcess(void)
 {
@@ -116,7 +111,7 @@ void start(struct cell * processCell)
 void stop(struct cell * processCell)
 {
 	void* process = processCell->element;
-	removeCell(running, processCell);
+	removeCell(runningList, processCell);
 	insert(stoppedList, process);
 	yield(); /* Yield in case the processus have the processor */
 }
@@ -138,11 +133,11 @@ void yield()
  */
 void switchToProcess(void* process)
 {
-	if (running == NULL)
+	if (isEmpty(runningList))
 	{
 		startProcess(process); 
 	} else {
-		transfer(process, running);
+		transfer(process, getIndex(runningList, 0)->element);
 	}
 }
 
