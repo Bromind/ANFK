@@ -4,11 +4,12 @@
 @  +----------+  <- address + #4
 @  |    SP    |
 @  +----------+  <- address + #8
-@  |    LR    |
+@  | LR TMP   |
 @  +----------+  <- address + #12
 @  | GP regs  |
 @  |   ...    |
-@  +----------+  <- process stack : address + #0x30
+@  |    LR    |  <- address + #48
+@  +----------+  <- process stack : address + #52
 @  |   ...    |
 
 
@@ -22,6 +23,7 @@
 transfer:
 @ set next instruction be the link return
 	str lr, [r1, #0]
+	str lr, [r1, #48]
 
 @ save process State
 	mov r2, r0
@@ -37,8 +39,9 @@ transfer:
 .globl restartProcess
 restartProcess:
 	bl restoreProcessState
-	ldr lr, [r0, #0]
-	mov pc, lr
+	ldr r1, [r0, #0]
+	ldr lr, [r0, #48]
+	mov pc, r1
 
 @ globl symbol such that we can save processor state from the outside 
 @ (for instance before forking).
@@ -69,7 +72,8 @@ restoreProcessState:
 	ldr sp, [r0, #4]
 	str lr, [r0, #8]
 	bl restoreGPRegister
-	ldr pc, [r0, #8]
+	ldr r1, [r0, #8]
+	mov pc, r1
 
 @ r0 : process to restore
 restoreGPRegister:

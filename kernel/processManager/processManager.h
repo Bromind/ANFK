@@ -3,6 +3,7 @@ struct cell * createEmptyProcess(void);
 void deleteProcess();
 void switchToProcess(void* process);
 struct processDescriptor * getCurrentProcess(void);
+unsigned int getPID(void);
 
 void start(struct cell * processCell);
 void stop(struct cell * processCell);

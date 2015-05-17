@@ -1,12 +1,35 @@
+#ifndef PROCESSMANAGER_H
 #include "../processManager/processManager.h"
+#define PROCESSMANAGER_H
+#endif
+
+#ifndef TRANSFER_H
 #include "../processManager/transfer.h"
+#define TRANSFER_H
+#endif
+
+#ifndef PROCESSDESCRIPTOR_H
 #include "../processManager/processDescriptor.h"
+#define PROCESSDESCRIPTOR_H
+#endif
+
+#ifndef ALLOCATIONTABLE_H
 #include "../mem/allocationTable.h"
+#define ALLOCATIONTABLE_H
+#endif
+
+#ifndef STRING_H
 #include "../../utils/string/string.h"
+#define STRING_H
+#endif
+
+#ifndef LINKEDLIST_H
 #include "../../utils/linkedList.h"
+#define LINKEDLIST_H
+#endif
 
 /* duplicate process and return child PID (in both) */
-unsigned int fork(void)
+unsigned int sys_fork(void)
 {
 	struct processDescriptor* current = getCurrentProcess();
 	
@@ -15,8 +38,12 @@ unsigned int fork(void)
 	memcpy(current->stack, newStack, current->stackSize);
 
 	/* create a new process and fill parameters based on original */
-	struct processDescriptor * process = createEmptyProcess()->element;
+
+	struct cell* cell = createEmptyProcess();
+
+	struct processDescriptor * process = cell->element;
 	process->stackSize = current->stackSize;
+	process->stack = newStack;
 
 	/* Reset info stored so we can use them to prepare new process */
 	saveProcessState(&current->processState);
@@ -25,6 +52,9 @@ unsigned int fork(void)
 	
 	int spOffset = current->stack - current->processState.sp;
 	process->processState.sp = process->stack - spOffset;
+
+	/* Put the new process in the running list. */
+	start(cell);
 
 	/* At this point, we just have to update the value in 
 	   process->processState.pc such that when we start it we directly 

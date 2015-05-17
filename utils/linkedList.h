@@ -24,6 +24,9 @@ int size(struct linkedList * list);
 /* insert an element at the head of the list */
 struct linkedList * insert(struct linkedList * list, void* element);
 
+/* insert an element at the end of the list */
+struct linkedList * insertAtEnd(struct linkedList * list, void* element);
+
 /* move the head of the list to the next element */
 struct linkedList * rotateForward(struct linkedList * list);
 

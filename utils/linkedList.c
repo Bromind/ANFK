@@ -58,6 +58,22 @@ struct linkedList * insert(struct linkedList * list, void* element)
 	return list;
 }
 
+struct linkedList * insertAtEnd(struct linkedList * list, void* element)
+{
+	struct cell * newCell = createCell(element);
+	if(list->size == 0)
+	{
+		list->head = newCell;
+	} else {
+		newCell->next = list->head;
+		newCell->previous = newCell->next->previous;
+		newCell->previous->next = newCell;
+		list->head->previous = newCell;
+	}
+	list->size++;
+	return list;
+}
+
 struct linkedList * rotateForward(struct linkedList * list)
 {
 	list->head = list->head->next;

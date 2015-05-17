@@ -72,6 +72,11 @@ struct processDescriptor * getCurrentProcess(void)
 	return current;
 }
 
+unsigned int getPID(void)
+{
+	return ((struct processDescriptor*)getIndex(runningList, 0)->element)->pid;
+}
+
 unsigned int choosePPID(void)
 {
 	/* if first process */
@@ -81,7 +86,7 @@ unsigned int choosePPID(void)
 	} else {
 		struct processDescriptor* parent = (struct processDescriptor* )
 			getIndex(runningList, 0)->element;
-		return parent->ppid;
+		return parent->pid;
 	}
 }
 
@@ -95,7 +100,7 @@ struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 	process->processState.pc = f;
 	process->processState.sp = stackAddress + stackSize - 1;
 	/* When exiting, auto-delete process */
-	process->processState.lr_tmp = &deleteProcess; 
+	process->processState.lr = &deleteProcess; 
 	process->ppid = choosePPID();
 	pidCounter++;
 	process->pid = pidCounter;
@@ -103,7 +108,7 @@ struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 	 * and the stack size, to copy when forking */
 	process->stackSize = stackSize;
 	process->stack = stackAddress;
-	insert(stoppedList, process);
+	insertAtEnd(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }
 
@@ -114,8 +119,8 @@ struct cell * createEmptyProcess(void)
 				PROCESS_MANAGER_ID);
 	process->ppid = choosePPID();
 	pidCounter++;
-	process->pidCounter = pidCounter;
-	insert(stoppedList, process);
+	process->pid = pidCounter;
+	insertAtEnd(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }
 
@@ -141,7 +146,7 @@ void start(struct cell * processCell)
 {
 	void* process = processCell->element;
 	removeCell(stoppedList, processCell);
-	insert(runningList, process);
+	insertAtEnd(runningList, process);
 }
 
 /* Stop the process in the given cell (do not verify if the cell is indeed in 
@@ -151,13 +156,13 @@ void stop(struct cell * processCell)
 {
 	void* process = processCell->element;
 	removeCell(runningList, processCell);
-	insert(stoppedList, process);
+	insertAtEnd(stoppedList, process);
 	yield(); /* Yield in case the processus have the processor */
 }
 
 /* Suspend the current running process, and launch a running process. May be the
  * same if no other process are currently running*/
-void yield()
+void yield(void)
 {
 	struct processDescriptor* current = 
 		(struct processDescriptor*) getIndex(runningList, 0)->element;

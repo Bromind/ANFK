@@ -11,4 +11,5 @@ struct processState {
 	void* r10;
 	void* r11;
 	void* r12;
+	void* lr;
 };
