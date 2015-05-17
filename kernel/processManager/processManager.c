@@ -46,6 +46,8 @@
 struct linkedList * stoppedList;
 struct linkedList * runningList;
 
+unsigned int pidCounter = 0;
+
 void idleProcess(void)
 {
 	while(1)
@@ -63,6 +65,26 @@ void* createStack(void* stack, void* pc, int stackSize)
 	return stack;
 }
 
+struct processDescriptor * getCurrentProcess(void)
+{
+	struct processDescriptor * current = (struct processDescriptor *)
+		getIndex(runningList, 0)->element;
+	return current;
+}
+
+unsigned int choosePPID(void)
+{
+	/* if first process */
+	if(pidCounter == 0)
+	{
+		return 0;
+	} else {
+		struct processDescriptor* parent = (struct processDescriptor* )
+			getIndex(runningList, 0)->element;
+		return parent->ppid;
+	}
+}
+
 /* create new process and returns the cell containing the process */
 struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 {
@@ -74,6 +96,9 @@ struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 	process->processState.sp = stackAddress + stackSize - 1;
 	/* When exiting, auto-delete process */
 	process->processState.lr_tmp = &deleteProcess; 
+	process->ppid = choosePPID();
+	pidCounter++;
+	process->pid = pidCounter;
 	/* Save stack allocation address to free it when removing the process*/
 	process->stack = stackAddress;
 	insert(stoppedList, process);
