@@ -6,3 +6,4 @@
 extern void transfer(struct processState* nextProcess, struct processState* runningProcess);
 extern void startProcess(struct processState* process);
 extern void restartProcess(struct processState* process);
+extern void saveProcessState(struct processState* toSave);

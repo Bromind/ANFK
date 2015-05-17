@@ -99,8 +99,22 @@ struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 	process->ppid = choosePPID();
 	pidCounter++;
 	process->pid = pidCounter;
-	/* Save stack allocation address to free it when removing the process*/
+	/* Save stack allocation address to free it when removing the process
+	 * and the stack size, to copy when forking */
+	process->stackSize = stackSize;
 	process->stack = stackAddress;
+	insert(stoppedList, process);
+	return getIndex(stoppedList, 0);
+}
+
+struct cell * createEmptyProcess(void)
+{
+	struct processDescriptor * process = 
+		allocateMemory(sizeof(struct processDescriptor), 
+				PROCESS_MANAGER_ID);
+	process->ppid = choosePPID();
+	pidCounter++;
+	process->pidCounter = pidCounter;
 	insert(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }

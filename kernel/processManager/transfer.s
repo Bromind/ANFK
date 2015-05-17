@@ -40,7 +40,9 @@ restartProcess:
 	ldr lr, [r0, #0]
 	mov pc, lr
 
-
+@ globl symbol such that we can save processor state from the outside 
+@ (for instance before forking).
+.globl saveProcessState
 @ r0 : process to save
 saveProcessState:
 	str sp, [r0, #4]

@@ -1,4 +1,5 @@
 struct cell * createProcess(void (*f)(void), void* stack, int stackSize);
+struct cell * createEmptyProcess(void);
 void deleteProcess();
 void switchToProcess(void* process);
 struct processDescriptor * getCurrentProcess(void);

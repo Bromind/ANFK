@@ -6,6 +6,7 @@
 struct processDescriptor
 {
 	void* stack;
+	unsigned int stackSize;
 	unsigned int pid;
 	unsigned int ppid;
 	struct processState processState;
