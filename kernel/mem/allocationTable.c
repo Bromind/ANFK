@@ -88,6 +88,10 @@ unsigned int biggest2PowerUnder(unsigned int x)
 
 void* allocateMemory(unsigned int size, unsigned int runningProcess)
 {
+	if(size == 0)
+	{
+		return 0;
+	}
 	unsigned int pageSize = smallest2PowerAbove(size);
 	pageSize = (pageSize >= 64 ? pageSize : 64);
 	void* address = 0;
@@ -125,6 +129,7 @@ no_place:
 /*We should free the biggest buddy at the given address which is not splitted */
 void freeMemory(void* address, unsigned int runningProcess)
 {
+	if(address == 0) return;
 	unsigned int offset = (unsigned int) (address - freeSpace);
 	/* if not a multiple of 64*/
 	if(offset != ((offset>>(LOG_PAGE_SIZE - 1))<<(LOG_PAGE_SIZE - 1)))
