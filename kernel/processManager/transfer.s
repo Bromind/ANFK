@@ -38,45 +38,9 @@ transfer:
 @ r0 : process to restart : restore configuration & jump
 .globl restartProcess
 restartProcess:
-	bl restoreProcessState
-	ldr r1, [r0, #0]
-	ldr lr, [r0, #48]
-	mov pc, r1
-
-@ globl symbol such that we can save processor state from the outside 
-@ (for instance before forking).
-.globl saveProcessState
-@ r0 : process to save
-saveProcessState:
-	str sp, [r0, #4]
-	str lr, [r0, #8] @ space for tmp lr storage
-	bl saveGPRegister
-	ldr lr, [r0, #8]
-	mov pc, lr @ goto label return
-
-@ r0 : process to Save
-saveGPRegister:
-	str r4, [r0, #12]
-	str r5, [r0, #16]
-	str r6, [r0, #20]
-	str r7, [r0, #24]
-	str r8, [r0, #28]
-	str r9, [r0, #32]
-	str r10, [r0, #36]
-	str r11, [r0, #40]
-	str r12, [r0, #44]
-	mov pc, lr
-
-@ r0 : process to restore
-restoreProcessState:
+@restore process State
 	ldr sp, [r0, #4]
-	str lr, [r0, #8]
-	bl restoreGPRegister
-	ldr r1, [r0, #8]
-	mov pc, r1
-
-@ r0 : process to restore
-restoreGPRegister:
+@ restore GP registers
 	ldr r4, [r0, #12]
 	ldr r5, [r0, #16]
 	ldr r6, [r0, #20]
@@ -86,15 +50,38 @@ restoreGPRegister:
 	ldr r10, [r0, #36]
 	ldr r11, [r0, #40]
 	ldr r12, [r0, #44]
+	ldr r1, [r0, #0]
+	ldr lr, [r0, #48]
+@return 
+	mov pc, r1
+
+@ globl symbol such that we can save processor state from the outside 
+@ (for instance before forking).
+.globl saveProcessState
+@ r0 : process to save
+saveProcessState:
+	str sp, [r0, #4]
+@ save GP Registers
+	str r4, [r0, #12]
+	str r5, [r0, #16]
+	str r6, [r0, #20]
+	str r7, [r0, #24]
+	str r8, [r0, #28]
+	str r9, [r0, #32]
+	str r10, [r0, #36]
+	str r11, [r0, #40]
+	str r12, [r0, #44]
+@ goto label return
 	mov pc, lr
 
-@ r0 : process to stop
-.globl stopRunningProcess
-stopRunningProcess:
-	push {lr}
+@ r0 contains processState to save to. lr contains the address to return, i.e.:
+@ pc value of where the function is called.
+.globl savePC
+savePC:
 	str lr, [r0, #0]
-	bl saveProcessState
-	pop {pc}
+	str lr, [r0, #48]
+	mov pc, lr
+
 
 @r0 : process to start : 
 @ set sp & lr (to deleteProcess, in  lr_tmp at processState initialization)

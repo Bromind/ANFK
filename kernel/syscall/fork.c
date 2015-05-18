@@ -47,24 +47,36 @@ unsigned int sys_fork(void)
 
 	/* Reset info stored so we can use them to prepare new process */
 	saveProcessState(&current->processState);
-	memcpy(&(current->processState), &(process->processState),
-			sizeof(struct processState));
 	
 	int spOffset = current->stack - current->processState.sp;
-	process->processState.sp = process->stack - spOffset;
 
+	int fpOffset = current->stack - current->processState.r11;
+
+	memcpy(&(current->processState), &(process->processState),
+			sizeof(struct processState));
+
+	process->processState.sp = process->stack - spOffset;
+	process->processState.r11 = process->stack - fpOffset;
+
+
+	savePC(&current->processState);
+	memcpy(&(process->processState.pc), &(process->processState.pc), 
+			sizeof(void *));
+	if(process->pid != getPID())
 	/* Put the new process in the running list. */
-	start(cell);
+	{
+		start(cell);
+	}
 
 	/* At this point, we just have to update the value in 
 	   process->processState.pc such that when we start it we directly 
 	   return 0. To do that, we have to change the value of 
 	   process->processState.pc . */
-	void** loc = &process->processState.pc;
+	/*void** loc = &process->processState.pc;
 	__asm__("str pc, [%0, #0]"
 		:
 		: "r" (loc)
-	);
+	);*/
 
 	return process->pid;
 }
