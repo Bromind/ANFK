@@ -4,18 +4,12 @@
 #include "../mem/allocationTable.h"
 #define ERROR_FILE_EXISTS -1
 #define FS_ID 5
+#include "fs.h"
 
-struct fileDescriptor {
-	unsigned int length;
-	struct fileDescriptor* parent;
-	char* data;
-};
 
-struct fileRef {
-	unsigned int nameLength;
-	char* name;
-	struct fileDescriptor* address;
-};
+/* Internal functions */
+struct fileDescriptor* fdFromName(char* name, unsigned int nameLength);
+struct linkedList* directoryFromFile(char* name, unsigned int nameLength);
 
 /* inode of the current fileDescriptor */
 struct fileDescriptor * currentFD;
@@ -25,6 +19,7 @@ struct linkedList * currentDirectory;
 
 int ls(void)
 {
+	LOGA("File : %s\n\n", currentFD->selfRef->name);
 	struct cell* cell = getIndex(currentDirectory, 0);
 	int i;
 	for(i = 0 ; i < size(currentDirectory) ; i ++)
@@ -38,17 +33,33 @@ int ls(void)
 
 int cat(char* name, unsigned int nameLength)
 {
-	LOGA("%s", fdFromName(name, nameLength)->data);
+	struct fileDescriptor* toCat = fdFromName(name, nameLength);
+	LOGA("%s", toCat->data);
 	return 0;
 }
 
 int cd(char* name, unsigned int nameLength)
 {
-/* TODO */
+	struct fileDescriptor* newFD = open(name, nameLength);
+	struct linkedList* newDirectory = directoryFromFile(name, nameLength);
+	struct fileDescriptor* oldFD = currentFD;
+	struct linkedList* oldDirectory = currentDirectory;
+	currentFD = newFD;
+	currentDirectory = newDirectory;
+	close(newFD);
+	while(size(oldDirectory))
+	{
+		void* elem = removeCell(oldDirectory, 
+				getIndex(oldDirectory, 0));
+			if(elem)
+				freeMemory(elem, FS_ID);
+	}
+	freeList(oldDirectory);
+	return 0;
 }
 
 /* Construct a directory list from file datas */
-void* directoryFromFile(char* name, unsigned int nameLength)
+struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 {
 	struct fileDescriptor* fd = open(name, nameLength);
 	struct linkedList* newDirectory = newList();
@@ -65,7 +76,8 @@ void* directoryFromFile(char* name, unsigned int nameLength)
 			allocateMemory(sizeof(struct fileRef), FS_ID);
 
 		if (sizeof(struct fileRef) 
-				!= read(fd, newFileRef, sizeof(struct fileRef)))
+				!= read(fd,(char*) newFileRef, 
+					sizeof(struct fileRef)))
 		{
 			LOG("Error when constructing directory tree from file, bad size : aborting");
 			goto error;
@@ -88,7 +100,7 @@ TODO : should delete all the elements of the list
 
 int close(struct fileDescriptor* toClose)
 {
-	freeMemory(toClose);
+	freeMemory(toClose, FS_ID);
 }
 
 struct fileDescriptor* open(char* name, unsigned int nameLength)
@@ -102,29 +114,62 @@ struct fileDescriptor* open(char* name, unsigned int nameLength)
 
 unsigned int read(struct fileDescriptor* fd, char* buffer, unsigned int count)
 {
-	if(length < count) count = length;
+	if(fd->length < count) count = fd->length;
 	unsigned int read = memcpy(&(fd->data), buffer, count);
 	fd->data += read;
 	fd->length -= read;
 	return read;
 }
 
+unsigned int write(struct fileDescriptor* fd, char* buffer, unsigned int count)
+{
+	unsigned int written;
+	/* if the size of the file increase, re-write all the file */
+	if(count > fd->length)
+	{
+		struct fileDescriptor* self = fd->selfRef->address;
+		char* newData = 
+			allocateMemory(self->length + count - fd->length, 
+					FS_ID);
+		memcpy(self->data, newData, self->length - fd->length);
+		memcpy(buffer, newData+(fd->length), count);
+		self->length += count - fd->length;
+		char* oldData = self->data;
+		self->data = newData;
+		freeMemory(oldData, FS_ID);
+		written = count-(fd->length);
+	} else {
+		memcpy(buffer, fd->data, count);
+		written = count;
+	}
+	return written;
+}
+
 struct fileDescriptor* fdFromName(char* name, unsigned int nameLength)
 {
+	if(nameLength == 2 && stringCmp(name, "..", 2))
+	{
+		return currentFD->parent;
+	}
+	if(nameLength == 1 && stringCmp(name, ".", 1))
+	{
+		return currentFD;
+	}
 	struct cell* cell = getIndex(currentDirectory, 0);
 	int i;
 	for(i = 0 ; i < size(currentDirectory) ; i++)
 	{
 		struct fileRef* file = (struct fileRef*) cell->element;
 		if(file->nameLength == nameLength 
-				&& stringCmp(&nameLength, 
-					&(file->name), 
+				&& stringCmp(name, 
+					file->name, 
 					nameLength))
 		{
 			return file->address;
 		}
+		cell = cell->next;
 	}
-	return -1;
+	return 0;
 }
 
 void* writeCurrentDirectory(void)
@@ -198,6 +243,7 @@ int touch(char* name, unsigned int nameLength)
 		allocateMemory(sizeof(struct fileDescriptor), FS_ID);
 	newFile->length = 0;
 	newFile->parent = currentFD;
+	newFile->selfRef = allocateMemory(sizeof(struct fileRef), FS_ID);
 	newFile->data = 0;
 
 
@@ -205,13 +251,11 @@ int touch(char* name, unsigned int nameLength)
 	char* newName = allocateMemory(nameLength * sizeof(char), FS_ID);
 	memcpy(name, newName, nameLength);
 
-	struct fileRef* newFileRef = 
-		allocateMemory(sizeof(struct fileRef), FS_ID);
-	newFileRef->nameLength = nameLength;
-	newFileRef->name = newName;
-	newFileRef->address = newFile;
+	newFile->selfRef->nameLength = nameLength;
+	newFile->selfRef->name = newName;
+	newFile->selfRef->address = newFile;
 
-	insertAtEnd(currentDirectory, newFileRef);
+	insertAtEnd(currentDirectory, newFile->selfRef);
 	writeCurrentDirectory();
 	return 0;
 }
@@ -227,7 +271,13 @@ void initFS(void)
 		allocateMemory(sizeof(struct fileDescriptor), FS_ID);
 	rootFD->length = 0;
 	rootFD->parent = rootFD;
+	rootFD->selfRef = allocateMemory(sizeof(struct fileRef), FS_ID);
 	rootFD->data = 0;
+
+	rootFD->selfRef->nameLength = 5;
+	rootFD->selfRef->name = allocateMemory(5, FS_ID);
+	memcpy("root", rootFD->selfRef->name, 5);
+	rootFD->selfRef->address = rootFD;
 	currentDirectory = newList();
 	currentFD = rootFD;
 }
@@ -241,8 +291,15 @@ void main(void)
 	initFS();
 	touch("fichier1", 9);
 	mkdir("dossier1", 9);
+	struct fileDescriptor* f1 = open("fichier1", 9);
+	write(f1, "Banane", 6);
+	close(f1);
+	cat("fichier1", 9);
 	ls();
-//	cat();
+	cd("dossier1", 9);
+	ls();
+	cd("..", 2);
+	ls();
 }
 #endif
 #endif
