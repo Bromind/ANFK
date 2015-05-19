@@ -85,6 +85,10 @@ struct linkedList * rotateForward(struct linkedList * list)
    return the element at given cell */
 void* removeCell(struct linkedList * list, struct cell * cell)
 {
+	if(cell == NULL)
+	{
+		return NULL;
+	}
 	if(list->head == cell)
 	{
 		if(cell->next == cell)
