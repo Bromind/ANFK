@@ -9,3 +9,14 @@ int memcpy(void* original, void* destination, unsigned int length)
 	}
 	return i;
 }
+
+int stringCmp(char* s1, char* s2, unsigned int length)
+{
+	int toReturn = 1;
+	length--;
+	for(; length && toReturn; length--)
+	{
+		toReturn &= (*(s1+length) == *(s2+length));
+	}
+	return toReturn;
+}

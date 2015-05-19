@@ -35,7 +35,7 @@ int isEmpty(struct linkedList * list)
 	return list->size == 0;
 }
 
-int size(struct linkedList * list)
+unsigned int size(struct linkedList * list)
 {
 	return list->size;
 }

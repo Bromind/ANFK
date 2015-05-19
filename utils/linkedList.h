@@ -19,7 +19,7 @@ struct linkedList * newList(void);
 int isEmpty(struct linkedList * list);
 
 /* return the size of the list */
-int size(struct linkedList * list);
+unsigned int size(struct linkedList * list);
 
 /* insert an element at the head of the list */
 struct linkedList * insert(struct linkedList * list, void* element);
