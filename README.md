@@ -18,4 +18,5 @@ Directories
 | /kernel/processManager | all that concern process managing, i.e. transfer functions, etc...|
 | /kernel/driver/ | sources for driver (gpio, framebuffer, mailbox, etc...) | 
 | /kernel/mem/ | stuff concerning memory allocation|
+| /kernel/fs/ | filesystem stuff|
 | /utils/   | maths, dynamic lists, dynamic arrays, etc... | 
