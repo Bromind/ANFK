@@ -54,7 +54,7 @@ int cd(char* name, unsigned int nameLength)
 		void* elem = removeCell(oldDirectory, 
 				getIndex(oldDirectory, 0));
 			if(elem)
-				freeMemory(elem, FS_ID);
+				kfree(elem);
 	}
 	freeList(oldDirectory);
 	return 0;
@@ -116,7 +116,7 @@ TODO : should delete all the elements of the list
 
 int close(struct fileDescriptor* toClose)
 {
-	freeMemory(toClose, FS_ID);
+	kfree(toClose);
 }
 
 struct fileDescriptor* open(char* name, unsigned int nameLength)
@@ -151,7 +151,7 @@ unsigned int write(struct fileDescriptor* fd, char* buffer, unsigned int count)
 		self->length += count - fd->length;
 		char* oldData = self->data;
 		self->data = newData;
-		freeMemory(oldData, FS_ID);
+		kfree(oldData);
 		written = count-(fd->length);
 	} else {
 		memcpy(buffer, fd->data, count);
@@ -249,7 +249,7 @@ void* writeCurrentDirectory(void)
 	currentFD->length = newLength;
 	currentFD->data = newData;
 
-	freeMemory(oldData, FS_ID);
+	kfree(oldData);
 
 	return;
 }
