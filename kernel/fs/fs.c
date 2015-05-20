@@ -9,17 +9,13 @@
 
 /* Internal functions */
 struct fileDescriptor* fdFromName(char* name, unsigned int nameLength);
-struct linkedList* directoryFromFile(char* name, unsigned int nameLength, 
-		unsigned int * lengthOfSubfiles);
+struct linkedList* directoryFromFile(char* name, unsigned int nameLength);
 
 /* inode of the current fileDescriptor */
 struct fileDescriptor * currentFD;
 
 /* A directory is just a list of (childname ; address) */
 struct linkedList * currentDirectory; 
-
-/* Sum of size of names of subdirs of the current directory */
-unsigned int namesLength;
 
 int ls(void)
 {
@@ -47,9 +43,7 @@ int cat(char* name, unsigned int nameLength)
 int cd(char* name, unsigned int nameLength)
 {
 	struct fileDescriptor* newFD = open(name, nameLength);
-	unsigned int lengthOfSubfiles = 0;
-	struct linkedList* newDirectory = directoryFromFile(name, nameLength,
-			&lengthOfSubfiles);
+	struct linkedList* newDirectory = directoryFromFile(name, nameLength);
 	struct fileDescriptor* oldFD = currentFD;
 	struct linkedList* oldDirectory = currentDirectory;
 	currentFD = newFD;
@@ -67,36 +61,21 @@ int cd(char* name, unsigned int nameLength)
 }
 
 /* Construct a directory list from file datas */
-struct linkedList* directoryFromFile(char* name, unsigned int nameLength, 
-		unsigned int * lengthOfSubfiles)
+struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 {
 	struct fileDescriptor* fd = open(name, nameLength);
 	
 	
-	unsigned int length = 0;
-	if(sizeof(unsigned int) != read(fd, (char*) &length, 
-				sizeof(unsigned int)))
-	{
-		LOG("Can't read subfile names length");
-	}
-	char* names = allocateMemory(length * sizeof(char), FS_ID);
-	char* currentName = names;
-
 	unsigned int numberOfFile = 0;
 	if(sizeof(unsigned int) != read(fd, (char*) &numberOfFile, 
 				sizeof(unsigned int)))
 	{
-		LOG("Can't read number of files");
+		LOG("Can't read number of files, aborting");
+		goto error;
 	}
 
 
 	struct linkedList* newDirectory = newList();
-	unsigned int size = fd->length;
-	if(size%(sizeof(struct fileRef)) != length%(sizeof(struct fileRef)))
-	{
-		LOG("Filesize is not multiple of sizeof(struct fileRef), file may be corrupted.");
-		goto error;
-	}
 
 	int i = 0;
 	for(; i < numberOfFile ; i++)
@@ -104,22 +83,24 @@ struct linkedList* directoryFromFile(char* name, unsigned int nameLength,
 		struct fileRef* newFileRef = 
 			allocateMemory(sizeof(struct fileRef), FS_ID);
 
-		if (sizeof(struct fileRef) 
-				!= read(fd,(char*) newFileRef, 
+		if (sizeof(struct fileRef) != read(fd,(char*) newFileRef, 
 					sizeof(struct fileRef)))
 		{
-			LOG("Error when constructing directory tree from file, bad size : aborting");
+			LOG("Error when constructing directory tree from file, can't read : aborting");
 			goto error;
 		}
-		newFileRef->name = currentName;
-		currentName += newFileRef->nameLength;
+		unsigned int nameLength = newFileRef->nameLength;
+		newFileRef->name = allocateMemory(sizeof(char)*nameLength, 
+				FS_ID);
+		if(nameLength * sizeof(char) 
+				!= read(fd, newFileRef->name, nameLength))
+		{
+			LOG("Error when constructing directory tree from file, can't read : aborting");
+			goto error;
+		}
+
 		insert(newDirectory, newFileRef);
 	}
-	if(sizeof(char) * length != read(fd, names, sizeof(char)*length))
-	{
-		LOG("Can't read all filenames");
-	}
-	*lengthOfSubfiles = length;
 	return newDirectory;
 
 
@@ -210,11 +191,22 @@ struct fileDescriptor* fdFromName(char* name, unsigned int nameLength)
 
 void* writeCurrentDirectory(void)
 {
-
-	unsigned int subfileNamesLength = namesLength;
 	unsigned int numberOfFile = size(currentDirectory);
+	unsigned int subfileNamesLength = 0;
+
+	/* Computing names of files*/
+	{
+		int i;
+		for(i = 0; i < numberOfFile ; i++)
+		{
+			subfileNamesLength += 
+				((struct fileRef*)
+				 getIndex(currentDirectory, i)->element)
+				->nameLength;
+		}
+	}
+
 	unsigned int newLength = 
-		sizeof(unsigned int) /* namesLength */
 		+ sizeof(unsigned int) /* number of subfiles*/
 		+ (sizeof(struct fileRef)) * numberOfFile /*filerefs content */
 		+ sizeof(char) * subfileNamesLength; /* Save subfile names */
@@ -227,25 +219,24 @@ void* writeCurrentDirectory(void)
 	if(numberOfFile > 0) {
 		newData = (char*) allocateMemory(newLength, FS_ID);
 		char* index = newData;
-		memcpy(&subfileNamesLength, index, sizeof(unsigned int));
-		index += sizeof(unsigned int);
 		memcpy(&numberOfFile, index, sizeof(unsigned int));
 		index += sizeof(unsigned int);
 
 		struct cell* tmp = getIndex(currentDirectory, 0);
-
 		{
 			int i;
 			for(i = 0 ; i < numberOfFile ; i++)
 			{
-				memcpy(tmp->element, index, 
-						sizeof(struct fileRef));
-				unsigned int nameLength = 
-					((struct fileRef*)tmp->element)->nameLength;
-				memcpy(((struct fileRef*)tmp->element)->name, 
-						newData + namesOffset, nameLength);
-				namesOffset += sizeof(char)*nameLength;
+				struct fileRef* ref =
+					(struct fileRef*)tmp->element;
+
+				memcpy(ref, index, sizeof(struct fileRef));
 				index += sizeof(struct fileRef);
+				
+				unsigned int nameLength = ref->nameLength;
+
+				memcpy(ref->name, index, nameLength);
+				index += nameLength;
 				tmp = tmp->next;
 			}
 		}
@@ -304,15 +295,19 @@ int touch(char* name, unsigned int nameLength)
 	newFile->selfRef->address = newFile;
 
 	insertAtEnd(currentDirectory, newFile->selfRef);
-	namesLength += nameLength;
 
 	writeCurrentDirectory();
 	return 0;
 }
 
+
+/* touch file & write it once to have the header*/
 int mkdir(char* name, unsigned int nameLength)
 {
-	return touch(name, nameLength);
+	unsigned int defaultDirContent = 0;
+	touch(name, nameLength);
+	struct fileDescriptor* fd = open(name, nameLength);
+	write(fd, (char*)&defaultDirContent, sizeof(unsigned int));
 }
 
 void initFS(void)
@@ -330,7 +325,6 @@ void initFS(void)
 	rootFD->selfRef->address = rootFD;
 	currentDirectory = newList();
 	currentFD = rootFD;
-	namesLength = 0;
 }
 
 #ifdef DEBUG
