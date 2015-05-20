@@ -81,7 +81,7 @@ struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 	for(; i < numberOfFile ; i++)
 	{
 		struct fileRef* newFileRef = 
-			allocateMemory(sizeof(struct fileRef), FS_ID);
+			kalloc(sizeof(struct fileRef));
 
 		if (sizeof(struct fileRef) != read(fd,(char*) newFileRef, 
 					sizeof(struct fileRef)))
@@ -90,8 +90,7 @@ struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 			goto error;
 		}
 		unsigned int nameLength = newFileRef->nameLength;
-		newFileRef->name = allocateMemory(sizeof(char)*nameLength, 
-				FS_ID);
+		newFileRef->name = kalloc(sizeof(char)*nameLength);
 		if(nameLength * sizeof(char) 
 				!= read(fd, newFileRef->name, nameLength))
 		{
@@ -123,7 +122,7 @@ int close(struct fileDescriptor* toClose)
 struct fileDescriptor* open(char* name, unsigned int nameLength)
 {
 	struct fileDescriptor* toReturn = 
-		allocateMemory(sizeof(struct fileDescriptor), FS_ID);
+		kalloc(sizeof(struct fileDescriptor));
 	struct fileDescriptor* toCopy = fdFromName(name, nameLength);
 	memcpy(toCopy, toReturn, sizeof(struct fileDescriptor));
 	return toReturn;
@@ -146,8 +145,7 @@ unsigned int write(struct fileDescriptor* fd, char* buffer, unsigned int count)
 	{
 		struct fileDescriptor* self = fd->selfRef->address;
 		char* newData = 
-			allocateMemory(self->length + count - fd->length, 
-					FS_ID);
+			kalloc(self->length + count - fd->length);
 		memcpy(self->data, newData, self->length - fd->length);
 		memcpy(buffer, newData+(fd->length), count);
 		self->length += count - fd->length;
@@ -217,7 +215,7 @@ void* writeCurrentDirectory(void)
 	char* newData;
 	/* Write new data, i.e. a representation of the list currentDirectory */
 	if(numberOfFile > 0) {
-		newData = (char*) allocateMemory(newLength, FS_ID);
+		newData = (char*) kalloc(newLength);
 		char* index = newData;
 		memcpy(&numberOfFile, index, sizeof(unsigned int));
 		index += sizeof(unsigned int);
@@ -279,15 +277,15 @@ int touch(char* name, unsigned int nameLength)
 	}
 
 	struct fileDescriptor* newFile = 
-		allocateMemory(sizeof(struct fileDescriptor), FS_ID);
+		kalloc(sizeof(struct fileDescriptor));
 	newFile->length = 0;
 	newFile->parent = currentFD;
-	newFile->selfRef = allocateMemory(sizeof(struct fileRef), FS_ID);
+	newFile->selfRef = kalloc(sizeof(struct fileRef));
 	newFile->data = 0;
 
 
 	/* Prepare name :*/
-	char* newName = allocateMemory(nameLength * sizeof(char), FS_ID);
+	char* newName = kalloc(nameLength * sizeof(char));
 	memcpy(name, newName, nameLength);
 
 	newFile->selfRef->nameLength = nameLength;
@@ -313,14 +311,14 @@ int mkdir(char* name, unsigned int nameLength)
 void initFS(void)
 {	
 	struct fileDescriptor* rootFD = 
-		allocateMemory(sizeof(struct fileDescriptor), FS_ID);
+		kalloc(sizeof(struct fileDescriptor));
 	rootFD->length = 0;
 	rootFD->parent = rootFD;
-	rootFD->selfRef = allocateMemory(sizeof(struct fileRef), FS_ID);
+	rootFD->selfRef = kalloc(sizeof(struct fileRef));
 	rootFD->data = 0;
 
 	rootFD->selfRef->nameLength = 5;
-	rootFD->selfRef->name = allocateMemory(5, FS_ID);
+	rootFD->selfRef->name = kalloc(5);
 	memcpy("root", rootFD->selfRef->name, 5);
 	rootFD->selfRef->address = rootFD;
 	currentDirectory = newList();

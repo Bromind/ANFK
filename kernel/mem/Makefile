@@ -7,10 +7,10 @@ OBJ = *.o
 OUTPUT = kernel
 
 
-main: allocationTable.o freeSpace.o
+main: allocationTable.o base.o freeMemory.o
 
-freeSpace.o:
-	$(AS) $(ASFLAGS) -o freeMemory.o freeMemory.s
+base.o:
+	$(AS) $(ASFLAGS) -o base.o base.s
 
 clean:
 	$(RM) $(OBJ)

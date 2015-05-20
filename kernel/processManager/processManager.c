@@ -4,6 +4,11 @@
 #define ALLOCATION_TABLE_H
 #endif
 
+#ifndef FREEMEMORY_H
+#define FREEMEMORY_H
+#include "../mem/freeMemory.h"
+#endif
+
 #ifndef LOGGER_H
 #include "../logger.h"
 #define LOGGER_H
@@ -40,6 +45,11 @@
 #ifndef STRUCT_PROCESSDESCRIPTOR_H
 #include "processDescriptor.h"
 #define STRUCT_PROCESSDESCRIPTOR_H
+#endif
+
+#ifndef STRUCT_MEMORYMAP_H
+#include "../mem/memoryMap.h"
+#define STRUCT_MEMORYMAP_H
 #endif
 
 
@@ -91,23 +101,21 @@ unsigned int choosePPID(void)
 }
 
 /* create new process and returns the cell containing the process */
-struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
+struct cell * createProcess(void (*f)(void))
 {
+	void* area = get2M();
 	/* Prepare initial processState*/
 	struct processDescriptor * process =
-		allocateMemory(sizeof(struct processDescriptor), 
-				PROCESS_MANAGER_ID);
+		kalloc(sizeof(struct processDescriptor));
+	
 	process->processState.pc = f;
-	process->processState.sp = stackAddress + stackSize - 1;
+	process->processState.sp =  area + 2*SPACE - 4;
 	/* When exiting, auto-delete process */
 	process->processState.lr = &deleteProcess; 
 	process->ppid = choosePPID();
 	pidCounter++;
 	process->pid = pidCounter;
-	/* Save stack allocation address to free it when removing the process
-	 * and the stack size, to copy when forking */
-	process->stackSize = stackSize;
-	process->stack = stackAddress;
+	process->map.baseAddress = area;
 	insertAtEnd(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }
@@ -115,8 +123,7 @@ struct cell * createProcess(void (*f)(void), void* stackAddress, int stackSize)
 struct cell * createEmptyProcess(void)
 {
 	struct processDescriptor * process = 
-		allocateMemory(sizeof(struct processDescriptor), 
-				PROCESS_MANAGER_ID);
+		kalloc(sizeof(struct processDescriptor));
 	process->ppid = choosePPID();
 	pidCounter++;
 	process->pid = pidCounter;
@@ -132,8 +139,8 @@ void deleteProcess()
 {
 	struct processDescriptor* process = (struct processDescriptor*)
 		 removeCell(runningList, getIndex(runningList, 0));
-	freeMemory(process->stack, PROCESS_MANAGER_ID);
-	freeMemory(process, PROCESS_MANAGER_ID);
+	free2M(process->map.baseAddress);
+	kfree(process);
 	struct processDescriptor* next = 
 		(struct processDescriptor *) getIndex(runningList, 0)->element;
 	restartProcess(&(next->processState));
@@ -193,9 +200,7 @@ void initManager(void)
 	stoppedList = newList();
 	runningList = newList();
 
-	void* idleStack = allocateMemory(IDLE_STACK_SIZE, PROCESS_MANAGER_ID);
-	struct cell * idleCell = createProcess(&idleProcess, idleStack,
-			IDLE_STACK_SIZE);
+	struct cell * idleCell = createProcess(&idleProcess);
 	start(idleCell);
 }
 

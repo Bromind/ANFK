@@ -14,7 +14,7 @@
 struct cell * createCell(void* element)
 {
 	struct cell * toReturn = 
-		allocateMemory(sizeof(struct cell), LINKEDLIST_ID);
+		kalloc(sizeof(struct cell));
 	toReturn->element = element;
 	toReturn->next = toReturn;
 	toReturn->previous = toReturn;
@@ -24,7 +24,7 @@ struct cell * createCell(void* element)
 struct linkedList * newList(void)
 {
 	struct linkedList * toReturn = 
-		allocateMemory(sizeof(struct linkedList), LINKEDLIST_ID);
+		kalloc(sizeof(struct linkedList));
 	toReturn->head = NULL;
 	toReturn->size = 0;
 	return toReturn;
@@ -101,14 +101,14 @@ void* removeCell(struct linkedList * list, struct cell * cell)
 	void* element = cell->element;
 	cell->next->previous = cell->previous;
 	cell->previous->next = cell->next;
-	freeMemory(cell, LINKEDLIST_ID);
+	kfree(cell);
 	list->size--;
 	return element;
 }
 
 void freeList(struct linkedList * list)
 {
-	freeMemory(list, LINKEDLIST_ID);
+	kfree(list);
 }
 
 struct cell * getCellAtIndex(struct cell * cell, int index)
