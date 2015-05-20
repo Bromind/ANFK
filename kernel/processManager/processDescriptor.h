@@ -10,6 +10,9 @@
 
 struct processDescriptor
 {
+	/* save the first address so we can free the file when exiting. 
+	   Set to 0 if the program is compiled with the kernel. */
+	void* baseAddress;
 	unsigned int pid;
 	unsigned int ppid;
 	struct processState processState;

@@ -101,7 +101,7 @@ unsigned int choosePPID(void)
 }
 
 /* create new process and returns the cell containing the process */
-struct cell * createProcess(void (*f)(void))
+struct cell * createProcess(void (*f)(void), void* baseAddress)
 {
 	void* area = get2M();
 	/* Prepare initial processState*/
@@ -116,6 +116,7 @@ struct cell * createProcess(void (*f)(void))
 	pidCounter++;
 	process->pid = pidCounter;
 	process->map.baseAddress = area;
+	process->baseAddress = baseAddress;
 	insertAtEnd(stoppedList, process);
 	return getIndex(stoppedList, 0);
 }
@@ -140,6 +141,10 @@ void deleteProcess()
 	struct processDescriptor* process = (struct processDescriptor*)
 		 removeCell(runningList, getIndex(runningList, 0));
 	free2M(process->map.baseAddress);
+	if(process->baseAddress) /* If stored in kernel memory*/
+	{
+		kfree(process->baseAddress);
+	}
 	kfree(process);
 	struct processDescriptor* next = 
 		(struct processDescriptor *) getIndex(runningList, 0)->element;
@@ -200,7 +205,7 @@ void initManager(void)
 	stoppedList = newList();
 	runningList = newList();
 
-	struct cell * idleCell = createProcess(&idleProcess);
+	struct cell * idleCell = createProcess(&idleProcess, 0);
 	start(idleCell);
 }
 

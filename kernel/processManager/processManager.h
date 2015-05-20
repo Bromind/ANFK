@@ -1,4 +1,4 @@
-struct cell * createProcess(void (*f)(void));
+struct cell * createProcess(void (*f)(void), void* baseAddress);
 struct cell * createEmptyProcess(void);
 void deleteProcess();
 void switchToProcess(void* process);
