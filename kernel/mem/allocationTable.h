@@ -7,5 +7,8 @@
 void* kalloc(unsigned int size);
 void kfree(void* ptr);
 
+void * allocateMemory(unsigned int size, struct memoryMap* map);
+void freeMemory(void* toFree, struct memoryMap* map);
+
 void initKernelMemory(void);
 

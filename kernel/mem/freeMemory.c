@@ -16,7 +16,8 @@ void* get2M(void)
 
 void free2M(void* ptr)
 {
-	free(ptr);
+	/*free(ptr);*/ /* Just let the memory leak, it is just a simulation 
+			and it will segfault since we won't have de same stack*/
 }
 #else
 

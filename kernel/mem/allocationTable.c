@@ -27,8 +27,6 @@
 
 
 /*------------------ Internal Functions ------------------------------*/
-void * allocateMemory(unsigned int size, struct memoryMap* map);
-void freeMemory(void* toFree, struct memoryMap* map);
 void allocateBuddy(unsigned int index, struct memoryMap* map);
 unsigned int indexOfFirstOfSize(unsigned int n);
 void splitBuddy(unsigned int index, struct memoryMap* map);
