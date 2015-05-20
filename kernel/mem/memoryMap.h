@@ -8,6 +8,14 @@
 
 #define NUMBER_OF_SECTION SPACE/PAGE_SIZE
 
+#define FULL 4 
+#define NON_FULL -5
+#define EMPTY -3
+#define NON_EMPTY 2
+#define SPLITTED 1
+#define NON_SPLITTED -2
+#define MAX_OFFSET 1048512
+
 /*---------------- Structure Definition --------------------*/
 
 struct buddy {
