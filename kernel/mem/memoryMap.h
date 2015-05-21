@@ -1,4 +1,3 @@
-
 /* Free space = 1MiB = 1048576 bytes */
 #define SPACE 1048576
 

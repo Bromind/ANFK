@@ -1,0 +1,2 @@
+
+void initKernelMemory(void);

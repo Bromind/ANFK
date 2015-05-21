@@ -18,3 +18,5 @@ int close(struct fileDescriptor* toClose);
 struct fileDescriptor* open(char* name, unsigned int nameLength);
 unsigned int read(struct fileDescriptor* fd, char* buffer, unsigned int count);
 unsigned int write(struct fileDescriptor* fd, char* buffer, unsigned int count);
+int touch(char* name, unsigned int nameLength);
+int mkdir(char* name, unsigned int nameLength);

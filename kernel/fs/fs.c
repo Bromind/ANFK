@@ -1,10 +1,31 @@
+#ifndef LINKEDLIST_H
 #include "../../utils/linkedList.h"
+#define LINKEDLIST_H
+#endif
+
+#ifndef STRING_H
 #include "../../utils/string/string.h"
+#define STRING_H
+#endif
+
+#ifndef LOGGER_H
 #include "../logger.h"
+#define LOGGER_H
+#endif
+
+#ifndef ALLOCATION_TABLE_H
 #include "../mem/allocationTable.h"
+#define ALLOCATION_TABLE_H
+#endif 
+
+
 #define ERROR_FILE_EXISTS -1
 #define FS_ID 5
+
+#ifndef FS_H
 #include "fs.h"
+#define FS_H
+#endif
 
 
 /* Internal functions */
@@ -34,7 +55,7 @@ int ls(void)
 
 int cat(char* name, unsigned int nameLength)
 {
-	LOGA("File : %s\n", &name);
+	LOGA("File : %s\n", name);
 	struct fileDescriptor* toCat = fdFromName(name, nameLength);
 	LOGA("%s\n\n\n", toCat->data);
 	return 0;
@@ -48,7 +69,7 @@ int cd(char* name, unsigned int nameLength)
 	struct linkedList* oldDirectory = currentDirectory;
 	currentFD = newFD;
 	currentDirectory = newDirectory;
-	close(newFD);
+	close(oldFD);
 	while(size(oldDirectory))
 	{
 		void* elem = removeCell(oldDirectory, 
@@ -117,6 +138,7 @@ TODO : should delete all the elements of the list
 int close(struct fileDescriptor* toClose)
 {
 	kfree(toClose);
+	return 0;
 }
 
 struct fileDescriptor* open(char* name, unsigned int nameLength)
@@ -147,14 +169,19 @@ unsigned int write(struct fileDescriptor* fd, char* buffer, unsigned int count)
 		char* newData = 
 			kalloc(self->length + count - fd->length);
 		memcpy(self->data, newData, self->length - fd->length);
-		memcpy(buffer, newData+(fd->length), count);
+		void* offset = newData+self->length - fd->length;
+		memcpy(buffer, offset, count);
 		self->length += count - fd->length;
 		char* oldData = self->data;
 		self->data = newData;
+		fd->length = 0;
+		fd->data = self->data + self->length;
 		kfree(oldData);
-		written = count-(fd->length);
+		written = count;
 	} else {
 		memcpy(buffer, fd->data, count);
+		fd->length -= count;
+		fd->data += count;
 		written = count;
 	}
 	return written;
@@ -187,6 +214,7 @@ struct fileDescriptor* fdFromName(char* name, unsigned int nameLength)
 	return 0;
 }
 
+/* Return a ref to the new data */
 void* writeCurrentDirectory(void)
 {
 	unsigned int numberOfFile = size(currentDirectory);
@@ -208,9 +236,6 @@ void* writeCurrentDirectory(void)
 		+ sizeof(unsigned int) /* number of subfiles*/
 		+ (sizeof(struct fileRef)) * numberOfFile /*filerefs content */
 		+ sizeof(char) * subfileNamesLength; /* Save subfile names */
-
-	unsigned int namesOffset = sizeof(unsigned int) * 2 
-		+ (sizeof(struct fileRef) * numberOfFile);
 
 	char* newData;
 	/* Write new data, i.e. a representation of the list currentDirectory */
@@ -251,7 +276,7 @@ void* writeCurrentDirectory(void)
 
 	kfree(oldData);
 
-	return;
+	return newData;
 }
 
 int touch(char* name, unsigned int nameLength)
@@ -306,6 +331,7 @@ int mkdir(char* name, unsigned int nameLength)
 	touch(name, nameLength);
 	struct fileDescriptor* fd = open(name, nameLength);
 	write(fd, (char*)&defaultDirContent, sizeof(unsigned int));
+	return 0;
 }
 
 void initFS(void)
