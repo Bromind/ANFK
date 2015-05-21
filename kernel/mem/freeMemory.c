@@ -4,25 +4,39 @@
 #endif
 
 #ifdef DEBUG
+
+#ifndef MMAN
+#include <sys/mman.h>
+#define MMAN
+#endif
+
 #ifndef STDLIB
 #include <stdlib.h>
 #define STDLIB
 #endif
 
-void* get2M(void)
-{
-	return malloc(2*SPACE);
-}
+#ifndef STDIO
+#include <stdio.h>
+#define STDIO
+#endif
 
-void free2M(void* ptr)
-{
-	/*free(ptr);*/ /* Just let the memory leak, it is just a simulation 
-			and it will segfault since we won't have de same stack*/
-}
+#ifndef ERRNO
+#include <errno.h>
+#define ERRNO
+#endif
+
+#ifndef UNISTD
+#include <unistd.h>
+#define UNISTD
+#endif
+
+#define MMAP_SIZE 335544320/*33554432*/ /* 2^21 * 8 bit/char * 20 char*/
+void* freeSpace ;
+
 #else
 
 #include "base.h"
-
+#endif
 #define OFFSET_BY_CELL 16777216
 #define OFFSET_0 0
 #define OFFSET_1 2097152
@@ -32,13 +46,32 @@ void free2M(void* ptr)
 #define OFFSET_5 10485760
 #define OFFSET_6 12582912
 #define OFFSET_7 14680064
-char blocks[20];
+char blocks[2];
+
+void initFreeSpace(void)
+{
+#ifdef DEBUG
+	void* addr = NULL;
+	int fd = -1;
+	freeSpace = mmap(addr,
+			MMAP_SIZE,
+			PROT_READ|PROT_WRITE|PROT_EXEC,
+			MAP_SHARED|MAP_ANON,
+			fd,
+			0);
+	if(freeSpace == MAP_FAILED)
+	{
+		printf("Failure : %i\n", errno);
+		exit(-1);
+	}
+#endif
+}
 
 /* if returns an address that is not multiple of 2 => error */
 void* get2M(void)
 {
 	int i;
-	for(i = 0 ; i < 20 ; i++)
+	for(i = 0 ; i < 2 ; i++)
 	{
 		char mask = 1 << 7;
 		if(!(blocks[i] & mask)) 
@@ -66,15 +99,15 @@ void* get2M(void)
 			return OFFSET_BY_CELL*i + OFFSET_7 + freeSpace;
 		mask = mask >>  1;
 	}
-	return 1;
+	return 0;
 
 }
 
 void free2M(void* ptr)
 {
-	int i = ptr/OFFSET_BY_CELL;
+	int i = ((int)ptr)/OFFSET_BY_CELL;
 	char mask = 1 << 7;
-	switch(ptr%OFFSET_BY_CELL){
+	switch(((int)ptr)%OFFSET_BY_CELL){
 		case OFFSET_0:
 			mask = -1 & (~mask);
 			break;
@@ -103,4 +136,3 @@ void free2M(void* ptr)
 	blocks[i] = blocks[i] & mask;
 
 }
-#endif

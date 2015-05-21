@@ -247,6 +247,9 @@ char isSplitted(unsigned int index, struct memoryMap* map){
 
 void initKernelMemory(void)
 {
+#ifdef DEBUG
+	initFreeSpace();
+#endif
 	kernelAllocationTree.baseAddress = get2M();
 }
 
