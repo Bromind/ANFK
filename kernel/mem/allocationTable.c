@@ -1,19 +1,12 @@
 /* Written after Tanenbaum explaination (Operating systems, section 4.2) of the 
    buddy System (Knuth 1973 ; Knowlton 1965)*/
 
-#ifdef DEBUG 
-/* simulate space by malloc-ing 1 MiB*/
-
-#ifndef STDLIB
-#include<stdlib.h>
-#define STDLIB
-#endif
-
-#endif
 
 #include "freeMemory.h"
+#include "../logger.h"
 
 #include "allocationTable.h"
+#include "../../utils/maths/div.h"
 
 /*------------------ Internal Structures -----------------------------*/
 
@@ -142,8 +135,8 @@ unsigned int smallestIndexFromOffset(unsigned int offset)
 	unsigned int rightMostOneBit = virtOffset & (-virtOffset);
 	unsigned int shifted = removeRightZeros(virtOffset);
 
-	unsigned int index = (2*NUMBER_OF_SECTION)/(rightMostOneBit << 1) -1 
-		+ shifted;
+	unsigned int index = div((2*NUMBER_OF_SECTION), (rightMostOneBit << 1))
+		-1 + shifted;
 	 return index;
 }
 
@@ -186,10 +179,10 @@ void mergeBuddy(unsigned int index, struct memoryMap* map){
 unsigned int offsetFromIndex(unsigned int index)
 {
 	unsigned int nth = index + 1;
-	unsigned int sectionSize = SPACE/biggest2PowerUnder(nth);
+	unsigned int sectionSize = div(SPACE, biggest2PowerUnder(nth));
 	/* Not the real address, doesn't take min page size into account*/
 	unsigned int virtOffset = 
-		(nth - biggest2PowerUnder(nth)) * sectionSize / PAGE_SIZE;
+		div((nth - biggest2PowerUnder(nth)) * sectionSize, PAGE_SIZE);
 	/* Shift by the LOG_PAGE_SIZE to have the true address*/
 	unsigned int offset = (virtOffset << (LOG_PAGE_SIZE-1));
 	return offset;
@@ -230,7 +223,7 @@ void splitBuddy(unsigned int index, struct memoryMap* map){
  */
 unsigned int indexOfFirstOfSize(unsigned int n)
 {
-	return (NUMBER_OF_SECTION / (n >> (LOG_PAGE_SIZE - 1 ))) - 1;
+	return (div(NUMBER_OF_SECTION,  (n >> (LOG_PAGE_SIZE - 1 )))) - 1;
 }
 
 char isFull(unsigned int index, struct memoryMap* map){
@@ -247,10 +240,11 @@ char isSplitted(unsigned int index, struct memoryMap* map){
 
 void initKernelMemory(void)
 {
-#ifdef DEBUG
 	initFreeSpace();
-#endif
+	LOG("Initialising kernelAllocationTree.baseAddress :");
 	kernelAllocationTree.baseAddress = get2M();
+	LOG_INT((int)kernelAllocationTree.baseAddress);
+
 }
 
 #ifdef DEBUG

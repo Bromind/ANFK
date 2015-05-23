@@ -6,6 +6,7 @@
 #include "initFrameBuffer.h"
 
 #include "logger.h"
+#include "test.h"
 
 void blinkFast(void)
 {
@@ -46,6 +47,8 @@ void kernelStart(struct FrameBufferDescription* fb)
 	newLine();
 	newLine();
 	LOG("git repository : https://github.com/Bromind/ANFK.git");
-	blinkSlow();
+	LOG("starting kernel");
+	runKernel();
+
 }
 

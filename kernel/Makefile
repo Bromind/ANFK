@@ -24,7 +24,7 @@ all: $(KERNEL_IMG) $(LIST)
 
 #FIXME
 $(KERNEL_ELF): $(OBJS) $(SUBDIR) $(LINKER)
-	ld --no-undefined $(wildcard driver/*/*.o) initFrameBuffer.o kernelStart.o main.o -Map $(KERNEL_MAP) -o $@ -T $(LINKER) 
+	ld --no-undefined $(wildcard fs/*.o) ../utils/linkedList.o ../utils/string/string.o $(wildcard driver/*/*.o) $(wildcard mem/*.o) $(wildcard syscall/*.o) $(wildcard processManager/*.o) initSubsystems.o initFrameBuffer.o kernelStart.o main.o test.o -Map $(KERNEL_MAP) -o $@ -T $(LINKER) 
 $(KERNEL_IMG): $(KERNEL_ELF)
 	objcopy $^ -O binary $@
 

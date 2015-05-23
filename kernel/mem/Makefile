@@ -1,7 +1,7 @@
 CC = gcc
 AS = /usr/bin/as
-CFLAGS = -std=gnu99 -g -pg -Wall -DDEBUG
-ASFLAGS = -g
+CFLAGS = -std=gnu99# -g -pg -Wall -DDEBUG
+ASFLAGS = #-g
 RM = /bin/rm
 OBJ = *.o
 OUTPUT = kernel

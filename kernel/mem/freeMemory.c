@@ -3,6 +3,11 @@
 #include "memoryMap.h"
 #endif
 
+#ifndef LOGGER_H
+#include "../logger.h"
+#define LOGGER_H
+#endif
+
 #ifdef DEBUG
 
 #ifndef MMAN
@@ -64,6 +69,10 @@ void initFreeSpace(void)
 		printf("Failure : %i\n", errno);
 		exit(-1);
 	}
+#else 
+	LOG("Initialising freeSpace : ");
+	freeSpace = &freeSpace; /* Set freeSpace to contain its own place */
+	LOG_INT((int) freeSpace);
 #endif
 }
 

@@ -12,15 +12,24 @@
 #include "fs/initFS.h"
 #define INIT_FS
 #endif 
+
+#ifndef LOGGER_H
+#include "logger.h"
+#define LOGGER_H
+#endif
 	
 void initSubsystems(void)
 {
+	LOG("Initialising kernel Memory");
 	initKernelMemory();
+	LOG("Initialising filesystem");
 	initFS();
+	LOG("Initialising processManager");
 	initManager();
 }
 
 void startScheduler(void)
 {
+	LOG("Starting kernel");
 	startKernel();
 }

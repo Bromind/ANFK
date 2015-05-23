@@ -44,26 +44,23 @@ SECTIONS {
 	.bss : {
 		*(.bss)
 	}
-	
-	.freeSpace : {
-		*(.freeSpace)
+
+	.end_kernel : {
+		*(.end_kernel)
 	}
 	. += 1M;
 	/* End of heap */
-	.+= 1K; /* free space to avoid collision */
+	. += 1K; /* free space to avoid collision */
 
-	.+=1M; /* 1M for stack */
-	.stackPointer :{
-		*(.stackPointer)
-	}
 
 	_end = .;
 
 	/*
 	* Finally comes everything else. A fun trick here is to put all other 
 	* sections into this section, which will be discarded by default.
-	*/
+	
 	/DISCARD/ : {
 		*(*)
 	}
+	*/
 }

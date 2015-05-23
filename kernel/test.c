@@ -29,7 +29,8 @@ void f1(void)
 */
 void f2(void)
 {
-	int instr1 = 0xe52db004;
+	LOG("Hello, world");
+/*	int instr1 = 0xe52db004;
 	int instr2 = 0xe28db000;
 	int instr3 = 0xe28bd000;
 	int instr4 = 0xe8bd0800;
@@ -46,13 +47,20 @@ void f2(void)
 	sys_close(fd);
 	sys_exec("test", "");
 	sys_cat("test");
-
+*/
 }
 
-void main(void)
+void runKernel(void)
 {
+	LOG("Testing log system");
+	LOG_INT(0);
+	LOG_INT(1);
+	LOG_INT(0x42);
+	LOG("Initialising subsystems");
 	initSubsystems();
+	LOG("Creating process");
 	struct cell* p1 = createProcess(&f2, 0);
 	start(p1);
+	LOG("Starting scheduler");
 	startScheduler();
 }

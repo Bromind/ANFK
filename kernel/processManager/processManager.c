@@ -62,9 +62,7 @@ void idleProcess(void)
 {
 	while(1)
 	{
-		#ifdef DEBUG
 		LOG("idle");
-		#endif
 		yield();
 	}
 }
@@ -205,6 +203,7 @@ void initManager(void)
 	stoppedList = newList();
 	runningList = newList();
 
+	LOG("creating idle process");
 	struct cell * idleCell = createProcess(&idleProcess, 0);
 	start(idleCell);
 }
@@ -216,5 +215,24 @@ void startKernel(void)
 {
 	struct processDescriptor* process = 
 		(struct processDescriptor*) getIndex(runningList, 0)->element;
+	LOG("Starting process : ");
+	LOG_INT(process->pid);
+	LOG_INT(process->ppid);
+	printProcess(process);
 	startProcess(&(process->processState));
+}
+
+void printProcess(struct processDescriptor* process)
+{
+	LOG("Print process : ");
+	LOG("Base address : ");
+	LOG_INT((int) process->baseAddress);
+	LOG("PID : ");
+	LOG_INT(process->pid);
+	LOG("PPID : ");
+	LOG_INT(process->ppid);
+	LOG("Process state (pc, sp, lr) : ");
+	LOG_INT((int)process->processState.pc);
+	LOG_INT((int)process->processState.sp);
+	LOG_INT((int)process->processState.lr);
 }

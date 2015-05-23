@@ -17,6 +17,16 @@
 unsigned short charX = 0;
 unsigned short charY = 0;
 
+void eraseScreen(void)
+{
+	setForeColour(0);
+	int i;
+	for(i = 0 ; i < FB_HEIGHT ; i++)
+	{
+		drawLine(0, i, FB_WIDTH, i);
+	}
+}
+
 void printChar(char c)
 {
 	drawCharacter(c, charX, charY);
@@ -36,6 +46,7 @@ void newLine(void)
 {
 	if(charY == FB_HEIGHT - 1)
 	{
+		eraseScreen();
 		charY = 0;
 	} else {
 		charY += CHAR_HEIGHT;
@@ -59,3 +70,24 @@ void print(char* c)
 	}
 }
 
+void printInt(int i)
+{
+	char string[11];
+	string[0] = '0';
+	string[1] = 'x';
+	string[2] = (char) (i >> 28) && 0xF;
+	string[3] = (char) (i >> 24) && 0xF;
+	string[4] = (char) (i >> 20) && 0xF;
+	string[5] = (char) (i >> 16) & 0xF;
+	string[6] = (char) (i >> 12) & 0xF;
+	string[7] = (char) (i >> 8) & 0xF;
+	string[8] = (char) (i >> 4) & 0xF;
+	string[9] = (char) i& 0xF;
+	string[10] = '\0';
+	int j = 2;
+	for(; j < 10 ; j++)
+	{
+		string[j] = string[j] < 10 ? string[j] + 48 : string[j] + 55;
+	}
+	print(string);
+}
