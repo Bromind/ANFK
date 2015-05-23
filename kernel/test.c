@@ -29,7 +29,9 @@ void f1(void)
 */
 void f2(void)
 {
-	LOG("Hello, world");
+	LOG("f2");
+	printProcess(getCurrentProcess());
+	for(;;){}
 /*	int instr1 = 0xe52db004;
 	int instr2 = 0xe28db000;
 	int instr3 = 0xe28bd000;

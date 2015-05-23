@@ -138,6 +138,8 @@ void deleteProcess()
 {
 	struct processDescriptor* process = (struct processDescriptor*)
 		 removeCell(runningList, getIndex(runningList, 0));
+	LOG("Deleting process : ");
+	LOG_INT((int) process->pid);
 	free2M(process->map.baseAddress);
 	if(process->baseAddress) /* If stored in kernel memory*/
 	{
@@ -174,11 +176,15 @@ void stop(struct cell * processCell)
  * same if no other process are currently running*/
 void yield(void)
 {
+	LOG("Transfering processes (current, next) : ");
 	struct processDescriptor* current = 
 		(struct processDescriptor*) getIndex(runningList, 0)->element;
 	rotateForward(runningList);
 	struct processDescriptor* next = 
 		(struct processDescriptor*) getIndex(runningList, 0)->element;
+	printProcess(current);
+	LOG("\n");
+	printProcess(next);
 	transfer(&(next->processState), &(current->processState));
 }
 
