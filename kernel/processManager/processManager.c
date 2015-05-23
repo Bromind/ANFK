@@ -184,9 +184,8 @@ void yield(void)
 	rotateForward(runningList);
 	struct processDescriptor* next = 
 		(struct processDescriptor*) getIndex(runningList, 0)->element;
-	printProcess(current);
-	LOG("\n");
-	printProcess(next);
+	LOG_INT(current->pid);
+	LOG_INT(next->pid);
 	transfer(&(next->processState), &(current->processState));
 }
 
@@ -225,8 +224,8 @@ void startKernel(void)
 		(struct processDescriptor*) getIndex(runningList, 0)->element;
 	LOG("Starting process : ");
 	LOG_INT(process->pid);
-	LOG_INT(process->ppid);
-	printProcess(process);
+/*	LOG_INT(process->ppid);
+	printProcess(process);*/
 	startProcess(&(process->processState));
 }
 

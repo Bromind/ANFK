@@ -30,25 +30,25 @@ void f1(void)
 void f2(void)
 {
 	LOG("f2");
-	for(;;){yield();}
 /*	int instr1 = 0xe52db004;
 	int instr2 = 0xe28db000;
 	int instr3 = 0xe28bd000;
 	int instr4 = 0xe8bd0800;
-	int instr5 = 0xe12fff1e;
+	int instr5 = 0xe12fff1e;*/
 	sys_touch("test");
 	struct fileDescriptor* fd = sys_open("test");
 
-	sys_write(fd,(char*) &instr1, sizeof(int));
+/*	sys_write(fd,(char*) &instr1, sizeof(int));
 	sys_write(fd,(char*) &instr2, sizeof(int));
 	sys_write(fd,(char*) &instr3, sizeof(int));
 	sys_write(fd,(char*) &instr4, sizeof(int));
-	sys_write(fd,(char*) &instr5, sizeof(int));
+	sys_write(fd,(char*) &instr5, sizeof(int));*/
+	sys_write(fd,"Hello", 6);
 
 	sys_close(fd);
-	sys_exec("test", "");
+/*	sys_exec("test", "");*/
 	sys_cat("test");
-*/
+
 }
 
 void runKernel(void)

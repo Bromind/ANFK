@@ -1,3 +1,4 @@
+
 struct fileRef {
 	unsigned int nameLength;
 	char* name;

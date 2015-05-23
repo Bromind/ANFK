@@ -22,6 +22,7 @@
 #define ERROR_FILE_EXISTS -1
 #define FS_ID 5
 
+
 #ifndef FS_H
 #include "fs.h"
 #define FS_H
@@ -37,6 +38,30 @@ struct fileDescriptor * currentFD;
 
 /* A directory is just a list of (childname ; address) */
 struct linkedList * currentDirectory; 
+
+struct fileDescriptor* open(char* name, unsigned int nameLength)
+{
+	struct fileDescriptor* toReturn = 
+		kalloc(sizeof(struct fileDescriptor));
+	struct fileDescriptor* toCopy = fdFromName(name, nameLength);
+	memcpy(toCopy, toReturn, sizeof(struct fileDescriptor));
+	return toReturn;
+}
+
+int close(struct fileDescriptor* toClose)
+{
+	kfree(toClose);
+	return 0;
+}
+
+unsigned int read(struct fileDescriptor* fd, char* buffer, unsigned int count)
+{
+	if(fd->length < count) count = fd->length;
+	unsigned int read = memcpy(fd->data, buffer, count);
+	fd->data += read;
+	fd->length -= read;
+	return read;
+}
 
 int ls(void)
 {
@@ -133,30 +158,6 @@ TODO : should delete all the elements of the list
 	}*/ 
 	freeList(newDirectory);
 	return 0;
-}
-
-int close(struct fileDescriptor* toClose)
-{
-	kfree(toClose);
-	return 0;
-}
-
-struct fileDescriptor* open(char* name, unsigned int nameLength)
-{
-	struct fileDescriptor* toReturn = 
-		kalloc(sizeof(struct fileDescriptor));
-	struct fileDescriptor* toCopy = fdFromName(name, nameLength);
-	memcpy(toCopy, toReturn, sizeof(struct fileDescriptor));
-	return toReturn;
-}
-
-unsigned int read(struct fileDescriptor* fd, char* buffer, unsigned int count)
-{
-	if(fd->length < count) count = fd->length;
-	unsigned int read = memcpy(fd->data, buffer, count);
-	fd->data += read;
-	fd->length -= read;
-	return read;
 }
 
 unsigned int write(struct fileDescriptor* fd, char* buffer, unsigned int count)
