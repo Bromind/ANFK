@@ -1,5 +1,5 @@
 #ifndef FS_H
-#include "../fs/fs.c"
+#include "../fs/fs.h"
 #define FS_H
 #endif
 
