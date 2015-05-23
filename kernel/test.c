@@ -30,8 +30,7 @@ void f1(void)
 void f2(void)
 {
 	LOG("f2");
-	printProcess(getCurrentProcess());
-	for(;;){}
+	for(;;){yield();}
 /*	int instr1 = 0xe52db004;
 	int instr2 = 0xe28db000;
 	int instr3 = 0xe28bd000;
@@ -54,15 +53,9 @@ void f2(void)
 
 void runKernel(void)
 {
-	LOG("Testing log system");
-	LOG_INT(0);
-	LOG_INT(1);
-	LOG_INT(0x42);
-	LOG("Initialising subsystems");
 	initSubsystems();
-	LOG("Creating process");
+	LOG("Creating process f2.");
 	struct cell* p1 = createProcess(&f2, 0);
 	start(p1);
-	LOG("Starting scheduler");
 	startScheduler();
 }

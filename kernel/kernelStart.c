@@ -39,14 +39,7 @@ void kernelStart(struct FrameBufferDescription* fb)
 	setGpioFunction(16, 1);
 	
 	LOG("Hello World !");
-	newLine();
 	LOG("-------------");
-	newLine();
-	newLine();
-	LOG("Project : Parallel kernel for RaspberryPi");
-	newLine();
-	newLine();
-	LOG("git repository : https://github.com/Bromind/ANFK.git");
 	LOG("starting kernel");
 	runKernel();
 

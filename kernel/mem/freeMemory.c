@@ -79,32 +79,41 @@ void initFreeSpace(void)
 /* if returns an address that is not multiple of 2 => error */
 void* get2M(void)
 {
+	LOG("Asking for 2MiB, returning address : ");
 	int i;
 	for(i = 0 ; i < 2 ; i++)
 	{
 		char mask = 1 << 7;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_0 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_0 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_1 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_1 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_2 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_2 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_3 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_3 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_4 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_4 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_5 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_5 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_6 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_6 + freeSpace;
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_7 + freeSpace));
 			return OFFSET_BY_CELL*i + OFFSET_7 + freeSpace;
 		mask = mask >>  1;
 	}

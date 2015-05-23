@@ -20,6 +20,8 @@
 #define LOGA(text, ...) print("[log] "text"\n")
 #define LOG_INT(i) print("[log] "); printInt(i); print("\n");
 
+void eraseScreen(void);
+
 #endif
 
 #define LOG(text) LOGA(text, "")

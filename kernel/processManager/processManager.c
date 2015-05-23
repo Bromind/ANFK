@@ -102,6 +102,8 @@ unsigned int choosePPID(void)
 struct cell * createProcess(void (*f)(void), void* baseAddress)
 {
 	void* area = get2M();
+	LOG("Process base address : ");
+	LOG_INT((int)area);
 	/* Prepare initial processState*/
 	struct processDescriptor * process =
 		kalloc(sizeof(struct processDescriptor));
@@ -230,14 +232,10 @@ void startKernel(void)
 
 void printProcess(struct processDescriptor* process)
 {
-	LOG("Print process : ");
-	LOG("Base address : ");
-	LOG_INT((int) process->baseAddress);
-	LOG("PID : ");
+	LOG("Print process (map.baseAddress, pid, ppid, pc, sp, lr) : ");
+	LOG_INT((int) process->map.baseAddress);
 	LOG_INT(process->pid);
-	LOG("PPID : ");
 	LOG_INT(process->ppid);
-	LOG("Process state (pc, sp, lr) : ");
 	LOG_INT((int)process->processState.pc);
 	LOG_INT((int)process->processState.sp);
 	LOG_INT((int)process->processState.lr);

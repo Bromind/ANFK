@@ -22,18 +22,16 @@
 #include "driver/timer/systemTimer.h"
 #define SYSTEM_TIMER_H
 #endif
+
+#include "driver/drawing/drawing.h"
 	
 void initSubsystems(void)
 {
-	wait(10000000);
-	LOG("Initialising kernel Memory");
+	LOG("Initialising subsystems");
 	initKernelMemory();
-	wait(10000000);
-	LOG("Initialising filesystem");
 	initFS();
-	wait(10000000);
-	LOG("Initialising processManager");
 	initManager();
+	LOG("Subsystems initialised");
 }
 
 void startScheduler(void)

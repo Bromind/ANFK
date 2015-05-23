@@ -1,5 +1,8 @@
 #include "driver/frameBuffer/frameBuffer.h"
 #include "driver/drawing/drawing.h"
+#include "logger.h"
+#include "driver/timer/systemTimer.h"
+#include "../utils/maths/div.h"
 
 #ifndef CHAR_SIZE
 
@@ -19,12 +22,54 @@ unsigned short charY = 0;
 
 void eraseScreen(void)
 {
+	LOG("Prepare to erase whole screen");
+	wait(1000000);
 	setForeColour(0);
 	int i;
 	for(i = 0 ; i < FB_HEIGHT ; i++)
 	{
-		drawLine(0, i, FB_WIDTH, i);
+		int j;
+		for(j = 0 ; j < FB_WIDTH ; j++)
+		{
+			drawPixel(i, j);
+		}
 	}
+	setForeColour(0xFFFF);
+	LOG("Screen erased");
+}
+
+void eraseScreenUp(void)
+{
+	LOG("Prepare to erase upper part of the screen");
+	wait(1000000);
+	setForeColour(0);
+	int i;
+	for(i = 0 ; i < div(FB_HEIGHT, 2) ; i++)
+	{
+		int j;
+		for(j = 0 ; j < FB_WIDTH ; j++)
+		{
+			drawPixel(i, j);
+		}
+	}
+	setForeColour(0xFFFF);
+}
+
+void eraseScreenDown(void)
+{
+	LOG("Prepare to erase lower part of the screen");
+	wait(1000000);
+	setForeColour(0);
+	int i;
+	for(i = div(FB_HEIGHT, 2) ; i < FB_HEIGHT ; i++)
+	{
+		int j;
+		for(j = 0 ; j < FB_WIDTH ; j++)
+		{
+			drawPixel(i, j);
+		}
+	}
+	setForeColour(0xFFFF);
 }
 
 void printChar(char c)
@@ -44,9 +89,18 @@ void printChar(char c)
 
 void newLine(void)
 {
+	printChar(92);
+	printChar('n');
+	if(charY == div(FB_HEIGHT, 2) - 3) 
+	{
+		eraseScreenDown();
+	}
+	if(charY == FB_HEIGHT - 3)
+	{
+		eraseScreenUp();
+	}
 	if(charY == FB_HEIGHT - 1)
 	{
-		eraseScreen();
 		charY = 0;
 	} else {
 		charY += CHAR_HEIGHT;
@@ -75,9 +129,9 @@ void printInt(int i)
 	char string[11];
 	string[0] = '0';
 	string[1] = 'x';
-	string[2] = (char) (i >> 28) && 0xF;
-	string[3] = (char) (i >> 24) && 0xF;
-	string[4] = (char) (i >> 20) && 0xF;
+	string[2] = (char) (i >> 28) & 0xF;
+	string[3] = (char) (i >> 24) & 0xF;
+	string[4] = (char) (i >> 20) & 0xF;
 	string[5] = (char) (i >> 16) & 0xF;
 	string[6] = (char) (i >> 12) & 0xF;
 	string[7] = (char) (i >> 8) & 0xF;
