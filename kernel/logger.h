@@ -10,8 +10,9 @@
 #define PROCESS_MANAGER_H
 #endif
 
-#define LOGA(text, ...) printf("[log process %i] "text"\n", getPID(), __VA_ARGS__); fflush(stdout)
-#define LOG_INT(i) printf("%i", i); fflush(stdout)
+#define LOGA(text, ...) printf("[log] "text, __VA_ARGS__); fflush(stdout)
+#define LOG_INT(i) printf("%x", i); fflush(stdout)
+#define LOG_CONT(text) printf(text)
 
 #else
 

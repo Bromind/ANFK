@@ -32,6 +32,7 @@
 /* Internal functions */
 struct fileDescriptor* fdFromName(char* name, unsigned int nameLength);
 struct linkedList* directoryFromFile(char* name, unsigned int nameLength);
+void printCurrentDirectory(void);
 
 /* inode of the current fileDescriptor */
 struct fileDescriptor * currentFD;
@@ -354,6 +355,17 @@ void initFS(void)
 	rootFD->selfRef->address = rootFD;
 	currentDirectory = newList();
 	currentFD = rootFD;
+}
+
+void printCurrentDirectory(void)
+{
+	LOG("current directory (address, size, head)\n");
+	LOG_INT((int) currentDirectory);
+	LOG_CONT(" ");
+	LOG_INT(currentDirectory->size);
+	LOG_CONT(" ");
+	LOG_INT((int)currentDirectory->head);
+	LOG_CONT("\n");
 }
 
 #ifdef DEBUG

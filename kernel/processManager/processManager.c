@@ -124,9 +124,6 @@ struct cell * createProcess(void (*f)(void), void* baseAddress)
 	process->pid = pidCounter;
 	process->map.baseAddress = area;
 	process->baseAddress = baseAddress;
-	LOG("Process created at address ");
-	LOG_INT((int) process);
-	LOG_CONT(" : \n");
 	printProcess(process);
 	insertAtEnd(&stoppedList, process);
 	return getIndex(&stoppedList, 0)->previous;
@@ -226,13 +223,6 @@ void initManager(void)
 	stoppedList.size = 0;
 	runningList.head = 0;
 	runningList.size = 0;
-	LOG("stoppedList at ");
-	LOG_INT((int) &stoppedList);
-	LOG_CONT("\n");
-	LOG("runningList at ");
-	LOG_INT((int) &runningList);
-	LOG_CONT("\n");
-
 	LOG("creating idle process\n");
 	struct cell * idleCell = createProcess(&idleProcess, 0);
 	start(idleCell);
@@ -244,16 +234,9 @@ void initManager(void)
 void startKernel(void)
 {
 	LOG("Gonna start the kernel, remind all processes :\n");
-	LOG("runningList (size, head) : ");
-	LOG_INT(runningList.size);
-	LOG_INT((int)runningList.head);
-	LOG_CONT("\n");
 	
 	int i = 0;
 	int max = runningList.size;
-	LOG("Number of processes : ");
-	LOG_INT(max);
-	LOG_CONT("\n");
 	for( ; i < max ; i++)
 	{
 		struct processDescriptor* p = 
@@ -264,6 +247,7 @@ void startKernel(void)
 		(struct processDescriptor*) getIndex(&runningList, 0)->element;
 	LOG("Starting process : ");
 	LOG_INT(process->pid);
+	LOG_CONT("\n");
 /*	LOG_INT(process->ppid); */
 	printProcess(process);
 	LOG_CONT("\n");

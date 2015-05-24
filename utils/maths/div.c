@@ -9,7 +9,7 @@ unsigned int div(unsigned int dividand, unsigned int divisor)
 		return 0;
 	}
 	unsigned int i = 0;
-	while (divisor < dividand) 
+	while (divisor <= dividand) 
 	{
 		i++;
 		dividand -= divisor;

@@ -52,13 +52,22 @@ void* freeSpace ;
 #define OFFSET_6 12582912
 #define OFFSET_7 14680064
 
-char blocks[2];
+/* if in debug, freeSpace points to malloc-ed space, o/w it is a symbol at 
+   the beginning of the freeSpace, i.e.: the address of the first free space. */
+#ifdef DEBUG
+#define BASE_ADDRESS freeSpace
+#else
+#define BASE_ADDRESS &freeSpace
+#endif
+
+char blocks[2] = {0, 0};
 
 void initFreeSpace(void)
 {
 #ifdef DEBUG
-	void* addr = NULL;
-	int fd = -1;
+	void* addr = 0; /*malloc(MMAP_SIZE);*/
+	freeSpace = addr;
+	/*int fd = -1;
 	freeSpace = mmap(addr,
 			MMAP_SIZE,
 			PROT_READ|PROT_WRITE|PROT_EXEC,
@@ -69,10 +78,10 @@ void initFreeSpace(void)
 	{
 		printf("Failure : %i\n", errno);
 		exit(-1);
-	}
+	}*/
 #else 
 	LOG("Initialising freeSpace : ");
-	freeSpace = &freeSpace; /* Set freeSpace to contain its own place */
+	freeSpace = BASE_ADDRESS; /* Set freeSpace to contain its own place */
 	LOG_INT((int) freeSpace);
 	LOG_CONT("\n");
 #endif
@@ -81,13 +90,13 @@ void initFreeSpace(void)
 /* if returns an address that is not multiple of 2 => error */
 void* get2M(void)
 {
-	LOG("Allocating 2MiB\n");
+	/*LOG("Allocating 2MiB\n");
 	LOG("current block array : ");
 	LOG_INT((int)(*blocks));
 	LOG_CONT("\n");
 	LOG("Freespace address : ");
-	LOG_INT((int)&freeSpace);
-	LOG_CONT("\n");
+	LOG_INT((int)BASE_ADDRESS);
+	LOG_CONT("\n");*/
 	LOG("Asking for 2MiB, returning address :");
 	int i;
 	for(i = 0 ; i < 2 ; i++)
@@ -95,66 +104,66 @@ void* get2M(void)
 		char mask = 1 << 7;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_0 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_0 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_0 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_0 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_1 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_1 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_1 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_1 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_2 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_2 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_2 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_2 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_3 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_3 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_3 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_3 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_4 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_4 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_4 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_4 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_5 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_5 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_5 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_5 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_6 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_6 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_6 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_6 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
 		{
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_7 + &freeSpace));
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_7 + BASE_ADDRESS));
 			LOG_CONT("\n");
 			blocks[i] |= mask;
-			return OFFSET_BY_CELL*i + OFFSET_7 + &freeSpace;
+			return OFFSET_BY_CELL*i + OFFSET_7 + BASE_ADDRESS;
 		}
 		mask = mask >>  1;
 	}

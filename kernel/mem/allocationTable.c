@@ -34,7 +34,8 @@ struct memoryMap kernelAllocationTree;
 
 void* kalloc(unsigned int size)
 {
-	return allocateMemory(size, &kernelAllocationTree);
+	void* addr = allocateMemory(size, &kernelAllocationTree);
+	return addr;
 }
 
 void kfree(void* ptr)
@@ -262,10 +263,10 @@ void printBuddy(unsigned int index, unsigned int level, struct memoryMap* map)
 		}
 	}
 	if(index == 0){
-		printf("%x", 
+		printf("%x\n", 
 			map->allocationTree[index].info);
 	} else {
-		printf("+-- %x", 
+		printf("+-- %x\n", 
 			map->allocationTree[index].info);
 	}
 	if(index < NUMBER_OF_SECTION - 1)
@@ -278,18 +279,16 @@ void printBuddy(unsigned int index, unsigned int level, struct memoryMap* map)
 #ifdef TEST_ALLOCATION
 void main(void)
 {
-	initFreeSpace();
+	initKernelMemory();
 	void* first = kalloc(64);
 	void* second = kalloc(128);
 	void* third = kalloc(262144);
-	printf("Base pointer : %p\n", freeSpace);
 	printf("------- Allocate 256bytes --------\n");
 	printBuddy(0, 0, &kernelAllocationTree);
 	printf("------- Free third ---------------\n");
 	kfree(second);
 	kfree(third);
 	printBuddy(0, 0, &kernelAllocationTree);
-	freeFreeSpace();
 }
 #endif
 
