@@ -23,6 +23,16 @@
 #define STRUCT_PROCESSDESCRIPTOR_H
 #endif 
 
+#ifndef TIMER_H
+#include "../driver/timer/systemTimer.h"
+#define TIMER_H
+#endif
+
+#ifndef LOGGER_H
+#include "../logger.h"
+#define LOGGER_H
+#endif
+
 /* DO NOT IMPLEMENT args SUPPORT NOW, THE file SHOULD BE IN THE CURRENT 
    DIRECTORY*/
 
@@ -50,6 +60,7 @@ int sys_exec(char* fileName, char* args)
 	current->processState.pc = (void*) fileBuffer;
 	current->processState.sp = current->map.baseAddress + 2*SPACE - 4;
 	current->processState.lr = &deleteProcess;
+	current->processState.lr_tmp = &deleteProcess;
 	{
 		int i;
 		for(i = 0 ; i < 2*NUMBER_OF_SECTION ; i++)
@@ -57,6 +68,21 @@ int sys_exec(char* fileName, char* args)
 			current->map.allocationTree[i].info = 0;
 		}
 	}
+	LOG("Prepare to exec : \n");
+	printProcess(current);
+	LOG("First instruction : ");
+	LOG_INT(*(int*)fileBuffer);
+	LOG_CONT("\n");
+	wait(1000000);
+	LOG("Exec in ");
+	int i = 3;
+	for( ; i >= 0 ; i --)
+	{
+		LOG_INT(i);
+		LOG_CONT("... ");
+		wait(1000000);
+	}
+
 	startProcess(&current->processState);
 	return 0;
 }

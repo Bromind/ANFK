@@ -18,21 +18,24 @@ LINKER = kernel.ld
 
 LIST = kernel.list
 
-SUBDIR = driver processManager mem
+SUBDIR = driver processManager mem syscall ../utils fs
 
 all: $(KERNEL_IMG) $(LIST)
 
 #FIXME
 $(KERNEL_ELF): $(OBJS) $(SUBDIR) $(LINKER)
-	ld --no-undefined $(wildcard fs/*.o) ../utils/linkedList.o ../utils/string/string.o $(wildcard driver/*/*.o) $(wildcard mem/*.o) $(wildcard syscall/*.o) $(wildcard processManager/*.o) initSubsystems.o initFrameBuffer.o kernelStart.o main.o test.o -Map $(KERNEL_MAP) -o $@ -T $(LINKER) 
+	ld --no-undefined main.o  driver/frameBuffer/frameBuffer.o driver/drawing/drawing.o driver/mailbox/mailbox.o kernelStart.o driver/gpio/gpio.o driver/timer/systemTimer.o initFrameBuffer.o init.o initSubsystems.o processManager/processManager.o processManager/transfer.o mem/allocationTable.o syscall/alloc.o syscall/file.o syscall/exec.o fs/fs.o ../utils/linkedList.o ../utils/maths/div.o ../utils/string/string.o mem/freeMemory.o -Map kernel.map -o kernel.elf -T kernel.ld
 $(KERNEL_IMG): $(KERNEL_ELF)
 	objcopy $^ -O binary $@
 
 $(LIST): $(KERNEL_ELF) 
 	objdump -d $(KERNEL_ELF) > $@
 
-$(SUBDIR): 
+$(SUBDIR): force_look
 	$(MAKE) -C $@
+
+force_look: 
+	true
 
 clean: 
 	-$(RM) $(OBJS)
@@ -40,3 +43,4 @@ clean:
 	-$(RM) $(KERNEL_ELF)
 	-$(RM) $(KERNEL_IMG)
 	-$(RM) $(LIST)
+	-for d in $(SUBDIR); do (cd $$d ; $(MAKE) clean); done

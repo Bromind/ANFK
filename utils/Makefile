@@ -1,14 +1,18 @@
 CC = gcc
 CFLAGS = -std=c99 -Wall# -g -pg
 RM = /bin/rm
-OBJ = *.o
-OUTPUT = utilsTest
+OBJ = $(patsubst %c,%o,$(wildcard *.c))
 
-all: array.o linkedList.o
+SUBDIR = string maths
 
-test: array.o linkedList.o mainTest.o
-	$(CC) -o $(OUTPUT) $(LDFLAGS) $^ $(LDLIBS)
+all: $(OBJ) $(SUBDIR)
+
+$(SUBDIR): force_look
+	$(MAKE) -C $@
+
+force_look:
+	true
 
 clean:
-	$(RM) $(OBJ)
-	$(RM) $(OUTPUT)
+	-$(RM) $(OBJ)
+	-for d in $(SUBDIR); do (cd $$d ; $(MAKE) clean); done

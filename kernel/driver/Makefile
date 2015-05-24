@@ -1,19 +1,24 @@
 AS = /usr/bin/as
-ASFLAGS = -g
+ASFLAGS = #-g
 CC = gcc
-CFLAGS = -std=c99 -g -pg -Wall
+CFLAGS = -std=c99 -Wall #-g -pg
 RM = /bin/rm
-OBJ = *.o
 
-SUBDIR = drawing frameBuffer gpio mailbox timer
+SOURCE_ASM = $(wildcard *.s)
+SOURCE_C = $(wildcard *.c)
 
-.PHONY: subdirs $(SUBDIR)
+OBJS = $(patsubst %s,%o,$(SOURCE_ASM))
+OBJS += $(patsubst %c,%o,$(SOURCE_C))
 
-all: subdirs
+SUBDIR = gpio drawing frameBuffer mailbox timer
 
-subdirs: $(SUBDIR)
+all: $(SUBDIR)
 
-$(SUBDIR):
+$(SUBDIR): force_look
 	$(MAKE) -C $@
 
+force_look: 
+	true
 
+clean: 
+	-for d in $(SUBDIR); do (cd $$d ; $(MAKE) clean); done
