@@ -1,6 +1,6 @@
 CC = gcc
 AS = /usr/bin/as
-CFLAGS = -std=c99 #-g -pg -Wall #-DDEBUG
+CFLAGS = -std=c99 -Wall #-g -pg #-DDEBUG
 ASFLAGS = #-g
 RM = /bin/rm
 OBJ = *.o

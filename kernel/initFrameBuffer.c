@@ -22,7 +22,7 @@ unsigned short charY = 0;
 
 void eraseScreen(void)
 {
-	LOG("Prepare to erase whole screen");
+	LOG("Prepare to erase whole screen\n");
 	wait(1000000);
 	setForeColour(0);
 	int i;
@@ -35,12 +35,12 @@ void eraseScreen(void)
 		}
 	}
 	setForeColour(0xFFFF);
-	LOG("Screen erased");
+	LOG("Screen erased\n");
 }
 
 void eraseScreenUp(void)
 {
-	LOG("Prepare to erase upper part of the screen");
+	LOG("Prepare to erase upper part of the screen\n");
 	wait(1000000);
 	setForeColour(0);
 	int i;
@@ -57,7 +57,7 @@ void eraseScreenUp(void)
 
 void eraseScreenDown(void)
 {
-	LOG("Prepare to erase lower part of the screen");
+	LOG("Prepare to erase lower part of the screen\n");
 	wait(1000000);
 	setForeColour(0);
 	int i;
@@ -89,8 +89,6 @@ void printChar(char c)
 
 void newLine(void)
 {
-	printChar(92);
-	printChar('n');
 	if(charY == div(FB_HEIGHT, 2) - 3) 
 	{
 		eraseScreenDown();

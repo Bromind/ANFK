@@ -27,16 +27,16 @@
 	
 void initSubsystems(void)
 {
-	LOG("Initialising subsystems");
+	LOG("Initialising subsystems\n");
 	initKernelMemory();
 	initFS();
 	initManager();
-	LOG("Subsystems initialised");
+	LOG(" ---> Subsystems initialised\n");
 }
 
 void startScheduler(void)
 {
 	wait(10000000);
-	LOG("Starting kernel");
+	LOG("Starting kernel\n");
 	startKernel();
 }

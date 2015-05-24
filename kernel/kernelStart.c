@@ -38,9 +38,9 @@ void kernelStart(struct FrameBufferDescription* fb)
 {
 	setGpioFunction(16, 1);
 	
-	LOG("Hello World !");
-	LOG("-------------");
-	LOG("starting kernel");
+	LOG("Hello World !\n");
+	LOG("-------------\n");
+	LOG("starting kernel\n");
 	runKernel();
 
 }

@@ -31,6 +31,12 @@
 #define TRANSFER_H
 #endif
 
+#ifndef TIMER_H
+#include "../driver/timer/systemTimer.h"
+#define TIMER_H
+#endif
+
+
 #ifndef LINKEDLIST_H
 #include "../../utils/linkedList.h"
 #define LINKEDLIST_H
@@ -53,8 +59,8 @@
 #endif
 
 
-struct linkedList * stoppedList;
-struct linkedList * runningList;
+struct linkedList stoppedList;
+struct linkedList runningList;
 
 unsigned int pidCounter = 0;
 
@@ -62,7 +68,7 @@ void idleProcess(void)
 {
 	while(1)
 	{
-		LOG("idle");
+		LOG("idle\n");
 		yield();
 	}
 }
@@ -76,13 +82,13 @@ void* createStack(void* stack, void* pc, int stackSize)
 struct processDescriptor * getCurrentProcess(void)
 {
 	struct processDescriptor * current = (struct processDescriptor *)
-		getIndex(runningList, 0)->element;
+		getIndex(&runningList, 0)->element;
 	return current;
 }
 
 unsigned int getPID(void)
 {
-	return ((struct processDescriptor*)getIndex(runningList, 0)->element)->pid;
+	return ((struct processDescriptor*)getIndex(&runningList, 0)->element)->pid;
 }
 
 unsigned int choosePPID(void)
@@ -93,7 +99,7 @@ unsigned int choosePPID(void)
 		return 0;
 	} else {
 		struct processDescriptor* parent = (struct processDescriptor* )
-			getIndex(runningList, 0)->element;
+			getIndex(&runningList, 0)->element;
 		return parent->pid;
 	}
 }
@@ -102,8 +108,9 @@ unsigned int choosePPID(void)
 struct cell * createProcess(void (*f)(void), void* baseAddress)
 {
 	void* area = get2M();
-	LOG("Process base address : ");
+	LOG("Creating process at base address : ");
 	LOG_INT((int)area);
+	LOG_CONT("\n");
 	/* Prepare initial processState*/
 	struct processDescriptor * process =
 		kalloc(sizeof(struct processDescriptor));
@@ -117,8 +124,12 @@ struct cell * createProcess(void (*f)(void), void* baseAddress)
 	process->pid = pidCounter;
 	process->map.baseAddress = area;
 	process->baseAddress = baseAddress;
-	insertAtEnd(stoppedList, process);
-	return getIndex(stoppedList, 0);
+	LOG("Process created at address ");
+	LOG_INT((int) process);
+	LOG_CONT(" : \n");
+	printProcess(process);
+	insertAtEnd(&stoppedList, process);
+	return getIndex(&stoppedList, 0)->previous;
 }
 
 struct cell * createEmptyProcess(void)
@@ -128,8 +139,8 @@ struct cell * createEmptyProcess(void)
 	process->ppid = choosePPID();
 	pidCounter++;
 	process->pid = pidCounter;
-	insertAtEnd(stoppedList, process);
-	return getIndex(stoppedList, 0);
+	insertAtEnd(&stoppedList, process);
+	return getIndex(&stoppedList, 0);
 }
 
 /*
@@ -139,9 +150,10 @@ struct cell * createEmptyProcess(void)
 void deleteProcess()
 {
 	struct processDescriptor* process = (struct processDescriptor*)
-		 removeCell(runningList, getIndex(runningList, 0));
+		 removeCell(&runningList, getIndex(&runningList, 0));
 	LOG("Deleting process : ");
 	LOG_INT((int) process->pid);
+	LOG_CONT("\n");
 	free2M(process->map.baseAddress);
 	if(process->baseAddress) /* If stored in kernel memory*/
 	{
@@ -149,7 +161,7 @@ void deleteProcess()
 	}
 	kfree(process);
 	struct processDescriptor* next = 
-		(struct processDescriptor *) getIndex(runningList, 0)->element;
+		(struct processDescriptor *) getIndex(&runningList, 0)->element;
 	restartProcess(&(next->processState));
 }
 
@@ -159,8 +171,8 @@ void deleteProcess()
 void start(struct cell * processCell)
 {
 	void* process = processCell->element;
-	removeCell(stoppedList, processCell);
-	insertAtEnd(runningList, process);
+	removeCell(&stoppedList, processCell);
+	insertAtEnd(&runningList, process);
 }
 
 /* Stop the process in the given cell (do not verify if the cell is indeed in 
@@ -169,8 +181,8 @@ void start(struct cell * processCell)
 void stop(struct cell * processCell)
 {
 	void* process = processCell->element;
-	removeCell(runningList, processCell);
-	insertAtEnd(stoppedList, process);
+	removeCell(&runningList, processCell);
+	insertAtEnd(&stoppedList, process);
 	yield(); /* Yield in case the processus have the processor */
 }
 
@@ -180,12 +192,15 @@ void yield(void)
 {
 	LOG("Transfering processes (current, next) : ");
 	struct processDescriptor* current = 
-		(struct processDescriptor*) getIndex(runningList, 0)->element;
-	rotateForward(runningList);
+		(struct processDescriptor*) getIndex(&runningList, 0)->element;
+	rotateForward(&runningList);
 	struct processDescriptor* next = 
-		(struct processDescriptor*) getIndex(runningList, 0)->element;
+		(struct processDescriptor*) getIndex(&runningList, 0)->element;
 	LOG_INT(current->pid);
+	LOG_CONT("  ");
 	LOG_INT(next->pid);
+	LOG_CONT("\n");
+	wait(1000000);
 	transfer(&(next->processState), &(current->processState));
 }
 
@@ -194,11 +209,11 @@ void yield(void)
  */
 void switchToProcess(void* process)
 {
-	if (isEmpty(runningList))
+	if (isEmpty(&runningList))
 	{
 		startProcess(process); 
 	} else {
-		transfer(process, getIndex(runningList, 0)->element);
+		transfer(process, getIndex(&runningList, 0)->element);
 	}
 }
 
@@ -207,10 +222,18 @@ void switchToProcess(void* process)
  */
 void initManager(void)
 {
-	stoppedList = newList();
-	runningList = newList();
+	stoppedList.head = 0;
+	stoppedList.size = 0;
+	runningList.head = 0;
+	runningList.size = 0;
+	LOG("stoppedList at ");
+	LOG_INT((int) &stoppedList);
+	LOG_CONT("\n");
+	LOG("runningList at ");
+	LOG_INT((int) &runningList);
+	LOG_CONT("\n");
 
-	LOG("creating idle process");
+	LOG("creating idle process\n");
 	struct cell * idleCell = createProcess(&idleProcess, 0);
 	start(idleCell);
 }
@@ -220,22 +243,47 @@ void initManager(void)
  */
 void startKernel(void)
 {
+	LOG("Gonna start the kernel, remind all processes :\n");
+	LOG("runningList (size, head) : ");
+	LOG_INT(runningList.size);
+	LOG_INT((int)runningList.head);
+	LOG_CONT("\n");
+	
+	int i = 0;
+	int max = runningList.size;
+	LOG("Number of processes : ");
+	LOG_INT(max);
+	LOG_CONT("\n");
+	for( ; i < max ; i++)
+	{
+		struct processDescriptor* p = 
+			(struct processDescriptor*) getIndex(&runningList, i)->element;
+		printProcess(p);
+	}
 	struct processDescriptor* process = 
-		(struct processDescriptor*) getIndex(runningList, 0)->element;
+		(struct processDescriptor*) getIndex(&runningList, 0)->element;
 	LOG("Starting process : ");
 	LOG_INT(process->pid);
-/*	LOG_INT(process->ppid);
-	printProcess(process);*/
+/*	LOG_INT(process->ppid); */
+	printProcess(process);
+	LOG_CONT("\n");
 	startProcess(&(process->processState));
 }
 
 void printProcess(struct processDescriptor* process)
 {
-	LOG("Print process (map.baseAddress, pid, ppid, pc, sp, lr) : ");
+	LOG("Print process (map.baseAddress, pid, ppid, pc, sp, lr) :\n ");
 	LOG_INT((int) process->map.baseAddress);
+	LOG_CONT(" ");
 	LOG_INT(process->pid);
+	LOG_CONT(" ");
 	LOG_INT(process->ppid);
+	LOG_CONT(" ");
 	LOG_INT((int)process->processState.pc);
+	LOG_CONT(" ");
 	LOG_INT((int)process->processState.sp);
+	LOG_CONT(" ");
 	LOG_INT((int)process->processState.lr);
+	LOG_CONT("\n");
+	wait(3000000);
 }

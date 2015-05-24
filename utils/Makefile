@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99# -g -pg -Wall
+CFLAGS = -std=c99 -Wall# -g -pg
 RM = /bin/rm
 OBJ = *.o
 OUTPUT = utilsTest

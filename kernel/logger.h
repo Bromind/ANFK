@@ -17,8 +17,9 @@
 
 #include "initFrameBuffer.h"
 
-#define LOGA(text, ...) print("[log] "text"\n")
-#define LOG_INT(i) print("[log] "); printInt(i); print("\n");
+#define LOGA(text, ...) print("[log] "); print(text)
+#define LOG_INT(i) printInt(i);
+#define LOG_CONT(text) print(text)
 
 void eraseScreen(void);
 

@@ -51,6 +51,7 @@ void* freeSpace ;
 #define OFFSET_5 10485760
 #define OFFSET_6 12582912
 #define OFFSET_7 14680064
+
 char blocks[2];
 
 void initFreeSpace(void)
@@ -73,48 +74,88 @@ void initFreeSpace(void)
 	LOG("Initialising freeSpace : ");
 	freeSpace = &freeSpace; /* Set freeSpace to contain its own place */
 	LOG_INT((int) freeSpace);
+	LOG_CONT("\n");
 #endif
 }
 
 /* if returns an address that is not multiple of 2 => error */
 void* get2M(void)
 {
-	LOG("Asking for 2MiB, returning address : ");
+	LOG("Allocating 2MiB\n");
+	LOG("current block array : ");
+	LOG_INT((int)(*blocks));
+	LOG_CONT("\n");
+	LOG("Freespace address : ");
+	LOG_INT((int)&freeSpace);
+	LOG_CONT("\n");
+	LOG("Asking for 2MiB, returning address :");
 	int i;
 	for(i = 0 ; i < 2 ; i++)
 	{
 		char mask = 1 << 7;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_0 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_0 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_0 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_0 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_1 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_1 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_1 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_1 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_2 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_2 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_2 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_2 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_3 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_3 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_3 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_3 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_4 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_4 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_4 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_4 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_5 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_5 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_5 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_5 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_6 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_6 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_6 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_6 + &freeSpace;
+		}
 		mask = mask >>  1;
 		if(!(blocks[i] & mask)) 
-			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_7 + freeSpace));
-			return OFFSET_BY_CELL*i + OFFSET_7 + freeSpace;
+		{
+			LOG_INT((int) (OFFSET_BY_CELL*i + OFFSET_7 + &freeSpace));
+			LOG_CONT("\n");
+			blocks[i] |= mask;
+			return OFFSET_BY_CELL*i + OFFSET_7 + &freeSpace;
+		}
 		mask = mask >>  1;
 	}
 	return 0;

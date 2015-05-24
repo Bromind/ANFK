@@ -3,6 +3,11 @@
 #define ALLOCATION_TABLE_H
 #endif
 
+#ifndef LOGGER_H
+#include "../kernel/logger.h"
+#define LOGGER_H
+#endif
+
 #ifndef LINKEDLIST_H
 #include "linkedList.h"
 #define LINKEDLIST_H
@@ -60,6 +65,10 @@ struct linkedList * insert(struct linkedList * list, void* element)
 
 struct linkedList * insertAtEnd(struct linkedList * list, void* element)
 {
+/*	LOG("Inserting element at ");
+	LOG_INT((int) element);
+	LOG_CONT(" at the end of the list ");
+	LOG_INT((int) list);*/
 	struct cell * newCell = createCell(element);
 	if(list->size == 0)
 	{

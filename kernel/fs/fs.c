@@ -65,24 +65,28 @@ unsigned int read(struct fileDescriptor* fd, char* buffer, unsigned int count)
 
 int ls(void)
 {
-	LOGA("Directory : %s\n", currentFD->selfRef->name);
+	LOG("Directory : ");
+	LOG_CONT(currentFD->selfRef->name);
+	LOG_CONT("\n");
 	struct cell* cell = getIndex(currentDirectory, 0);
 	int i;
 	for(i = 0 ; i < size(currentDirectory) ; i ++)
 	{
 		struct fileRef* file = (struct fileRef*) cell->element;
-		LOGA("%s\t%p\n", file->name, file->address);
+		LOG(file->name);
+		LOG_CONT(" ");
+		LOG_INT((int)file->address);
+		LOG_CONT("\n");
 		cell = cell->next;
 	}
-	LOG("\n\n\n");
 	return 0;
 }
 
 int cat(char* name, unsigned int nameLength)
 {
-	LOGA("File : %s\n", name);
 	struct fileDescriptor* toCat = fdFromName(name, nameLength);
-	LOGA("%s\n\n\n", toCat->data);
+	LOG(toCat->data);
+	LOG_CONT("\n");
 	return 0;
 }
 
@@ -116,7 +120,7 @@ struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 	if(sizeof(unsigned int) != read(fd, (char*) &numberOfFile, 
 				sizeof(unsigned int)))
 	{
-		LOG("Can't read number of files, aborting");
+		LOG("Can't read number of files, aborting\n");
 		goto error;
 	}
 
@@ -132,7 +136,7 @@ struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 		if (sizeof(struct fileRef) != read(fd,(char*) newFileRef, 
 					sizeof(struct fileRef)))
 		{
-			LOG("Error when constructing directory tree from file, can't read : aborting");
+			LOG("Error when constructing directory tree from file, can't read : aborting\n");
 			goto error;
 		}
 		unsigned int nameLength = newFileRef->nameLength;
@@ -140,7 +144,7 @@ struct linkedList* directoryFromFile(char* name, unsigned int nameLength)
 		if(nameLength * sizeof(char) 
 				!= read(fd, newFileRef->name, nameLength))
 		{
-			LOG("Error when constructing directory tree from file, can't read : aborting");
+			LOG("Error when constructing directory tree from file, can't read : aborting\n");
 			goto error;
 		}
 
@@ -294,7 +298,7 @@ int touch(char* name, unsigned int nameLength)
 				if(stringCmp(file->name, name, 
 							file->nameLength))
 				{
-					LOG("The file already exists.");
+					LOG("The file already exists.\n");
 					return ERROR_FILE_EXISTS;
 				}
 				tmp = tmp->next;
