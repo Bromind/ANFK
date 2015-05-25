@@ -9,13 +9,17 @@ done
 
 build ()
 {
-	make -C ./kernel 2>&1 | dialog --title --programbox $height $width;
+	workingDirectory=`pwd`
+	filepath=`dialog --stdout --title "Select output directory" --fselect "$workingDirectory" $height $width`
+	make -C ./kernel 2>&1 | dialog --title "Building the kernel" --programbox $height $width;
+	cp kernel/kernel.img kernel/kernel.elf kernel/kernel.map kernel/kernel.list "$filepath"
 	main;
 }
 
 clean()
 {
 	make -C ./kernel clean 2>&1 | dialog --title "Cleaning kernel directories" --programbox $height $width;
+	rm kernel.*;
 	main;
 }
 
@@ -150,7 +154,7 @@ then
 else
 	UPDATE="Version up-to-date";
 fi
-VERSION="$VERSION $UPDATE"
+VERSION="$VERSION\n$UPDATE"
 
 if [ $ARCH -ne "arm" ]
 then
