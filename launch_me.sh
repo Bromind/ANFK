@@ -57,7 +57,7 @@ parseChoice()
 main()
 {
 	dialog --clear --title "K-FetOS/ANFK project builder"\
-		--menu "What to do ?" $height $width 10\
+		--menu "$VERSION" $height $width 10\
 		"build" "Build the kernel" \
 		"clean" "Clean directories" \
 		"update" "Update the sources from github" \
@@ -139,6 +139,19 @@ clear;
 tempfile=`mktemp 2> /dev/null` || tempfile=/tmp/ANFK_build.tmp
 trap "rm -f $tempfile ; rm -rf ./tmp" 0 1 2 5 15
 ARCH=`arch | head -c 3`
+
+REMOTE=`git ls-remote | head -n 1 | cut -f 1`
+CURRENT=`git log -1 --format="%H"`
+
+VERSION=`git log -1 --format="Last commit : %h, %ar. "`
+if [ "$REMOTE" != "$CURRENT" ]
+then 
+	UPDATE="Your version is not the same as upstream";
+else
+	UPDATE="Version up-to-date";
+fi
+VERSION="$VERSION $UPDATE"
+
 if [ $ARCH -ne "arm" ]
 then
 	type dialog > /dev/null 2>&1 || alert_noDialog;
