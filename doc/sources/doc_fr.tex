@@ -1,0 +1,138 @@
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[frenchb]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+\title{K-FetOS / ANFK}
+
+\author{Martin \textsc{Vassor}, Rafaël \textsc{Bocquet} \& Théo \textsc{Laurent}}
+
+
+\begin{document}
+\maketitle
+\tableofcontents
+\section{Présentation}
+Ce projet est un micro-noyau pour RaspberryPi. Il a été commencé en juillet 2014
+pour le gestionnaire de processus. Il a ensuite été complètement repris en mai 
+2015 dans le cadre du projet du cours Systèmes et Réseaux de M. Pouzet et 
+M. Bourke à l'ENS.
+\section{Dépendances}
+Ce projet est un projet pour RaspberryPi et n'a été testé que sur cette 
+platforme, néanmoins, il devrait fonctionner sur d'autres plateformes équipées 
+d'un processeur ARM1176JZF-S, sous réserve d'adapter les drivers.
+Sont requis pour construire le projet : 
+\begin{enumerate}
+	\item gcc, as et ld pour ARM pour construire le projet
+	\item dialog pour l'interface de construction
+\end{enumerate}
+Si vous souhaitez cross-compiler le projet, vous devez aller modifier les 
+Makefiles pour mettre le nom de votre chaine de compilation à la place.
+
+\section{Build}
+Pour construire le projet, lancez $\mathtt{./lanch_me.sh}$ à la racine du 
+projet. Vous aurez alors une interface qui vous proposera les options les plus
+courantes (construire, nettoyer, lire le readme, etc...). En cas de problème de
+compilation, n'hésitez pas à envoyer un mail.
+
+\section{Organisation des sources}
+\begin{verbatim}
+.
++-- doc	:			La documentation
+|   +-- sources	:		Les sources de la documentation
++-- kernel :			Les sources du noyau
+|   +-- driver :		Les drivers
+|   |   +-- drawing :		L'affichage
+|   |   +-- frameBuffer :	La gestion du framebuffer, du GPU
+|   |   +-- gpio :		Les entrée/sorties GPIO
+|   |   +-- mailbox :		Le mailbox
+|   |   +-- timer :		L'horloge interne
+|   +-- fs :			Le système de fichier
+|   +-- mem :			La gestion de mémoire
+|   +-- processManager :	La gestion de processus
+|   +-- syscall	:		Les appels systèmes
++-- utils :			Les fonctions utilitaires
+    +-- maths :			Les fonctions mathématiques
+    +-- string :		Le traitement des chaines de caractères
+\end{verbatim}
+
+\section{Gestionnaire de processus}
+Le gestionnaire créé, transfert, et supprime les processus. Du point de vue du 
+noyau, un processus est un état des registres, ainsi qu'un espace en mémoire 
+reservé. Il maintient une liste des processus en cours d'execution et une liste 
+des processus stoppés.
+
+À la création, chaque processus se voit alloué un espace de 2MiB, dont 1MiB pour
+les allocations dynamiques et 1MiB pour la stack. Lors de la création, le 
+gestionnaire de processus demande au gestionnaire de mémoire ces 2MiB. Il 
+instancie ensuite le processus et le même dans la liste des processus stoppés.
+
+Les transferts de processus se font par appels de la fonction $\mathtt{yield}$.
+À ce moment, le gestionnaire sauve l'état des registres, et recharge les 
+registres du processus suivant. À noter, la fonction $\mathtt{yield}$ indique 
+juste que le processus laisse la main, mais il est tout à fait possible que le
+gestionnaire lui redonne tout de suite.
+
+La suppression de processus consiste juste à supprimer la structure du processus
+courant, à rendre la mémoire, et à passer au processus suivant.
+
+\section{Gestionnaire de mémoire}
+Le gestionnaire de mémoire fonctionne en deux partie : une partie qui alloue 
+uniquement des blocks de 2MiB (dans $\mathtt{freeMemory.[ch]}$), et une partie
+qui alloue pour chaque processus des blocks de taille variable (dans 
+$\mathtt{allocationTable.[ch]}$).
+
+Les blocks de 2MiB sont alloués uniquement sur demande du noyau, typiquement à 
+la création de processus. Le gestionnaire utilise un tableau pour stocker 
+lesquels sont utilisés et lesquels sont vides (un bit par block). On ne gère que 
+les 16 premiers blocks de 2MiB (le tableau fait 2 char).
+
+Les blocks de tailles arbitraires sont alloués par processus, dans la zone de 
+2MiB. Le gestionnaire utilise le \emph{Buddy System}. L'arbre des blocks utilsés
+est enregistré directement dans la structure du processus maintenue par le 
+noyau. À noter qu'une demande d'un bloc de moins de 64B retournera un bloc de 
+64B pour des raisons de consommation de mémoire : diviser par deux la taille du 
+plus petit bloc allouable multiplie par deux la taille de l'arbre.
+
+\section{Système de fichiers}
+Le système de fichier ne contient que des fichiers. Les dossiers sont une 
+interpretation des fichiers. 
+
+Un fichier est un structure $\mathtt{fileDescriptor}$ contenant :
+\begin{enumerate}
+	\item La taille du fichier
+	\item Un pointeur vers le descripteur de fichier parent.
+	\item Un pointeur vers sa propre référence
+	\item Un pointeur vers les données
+\end{enumerate}
+
+En outre, les fichiers sont référencés par des structures $\mathtt{fileRef}$ qui
+contiennent : 
+\begin{enumerate}
+	\item La longueur du nom du fichier
+	\item Un pointeur vers le nom du fichier
+	\item Un pointeur vers le descripteur de fichier
+\end{enumerate}
+
+Un dossier est juste un fichier dont les données sont des copies des 
+$\mathtt{fileRef}$s.
+
+Pour l'écriture et la lecture de fichier, une copie du $\mathtt{fileDescriptor}$
+est faite, dont le pointeur avance au fur et à mesure de l'écriture, et la 
+taille diminue en même temps.
+
+\section{Ce qu'il reste à faire}
+\subsection{Gestion des exceptions}
+Afin de pouvoir traiter les syscalls comme des exceptions, il nous faut un 
+mecanisme d'exceptions. Celà nous permettrait d'avoir des programmes qui ne sont
+pas compilés en même temps que le noyau.
+
+\subsection{MMU}
+Afin de pouvoir finir la gestion des $\mathtt{fork}$, il nous faudrait une MMU. 
+Il sera alors facile de forker, juste en copiant les 2MiB alloués au processus, 
+et en changeant la référence dans la MMU.
+
+\end{document}
+

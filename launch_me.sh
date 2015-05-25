@@ -18,8 +18,7 @@ build ()
 
 clean()
 {
-	make -C ./kernel clean 2>&1 | dialog --title "Cleaning kernel directories" --programbox $height $width;
-	rm kernel.*;
+	(make -C ./kernel clean ; make -C ./doc/sources/ clean) 2>&1 | dialog --title "Cleaning kernel directories" --programbox $height $width;
 	main;
 }
 
@@ -46,11 +45,19 @@ quit()
 	clear;
 }
 
+doc()
+{
+	make -C ./doc/sources/ 2>&1 | dialog --title "Building doc" --programbox $height $width;
+	main;
+
+}
+
 parseChoice()
 {
 	case $1 in
 		"build") build;;
 		"clean") clean;;
+		"doc") doc;;
 		"update") update;;
 		"credit") credit;;
 		"readme") readme;;
@@ -64,6 +71,7 @@ main()
 		--menu "$VERSION" $height $width 10\
 		"build" "Build the kernel" \
 		"clean" "Clean directories" \
+		"doc" "Build the documentation" \
 		"update" "Update the sources from github" \
 		"credit" "List developers"\
 		"readme" "Print readme"\
